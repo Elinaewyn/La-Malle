@@ -19,7 +19,7 @@
 
 :root{
   --teal:#0d4f4a; --teal-deep:#0a3a36; --coral:#ee6c4d; --ink:#16302c;
-  --muted:#6c807b; --paper:#e9e4d8; --card:#fbfaf5; --line:#d8d2c4;
+  --muted:#6c807b; --paper:#e9e4d8; --card:#fbfaf5; --line:#d8d2c4; --mid:#0f5a54;
   --display:'Bricolage Grotesque','Inter',system-ui,sans-serif;
   --body:'Inter',system-ui,-apple-system,sans-serif;
   --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
@@ -105,12 +105,12 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24
 .ticket__head{background:var(--teal-deep);color:#f3efe4;padding:20px 22px 18px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
 .ticket__route{font-family:var(--mono);font-weight:700;font-size:21px;letter-spacing:.07em;}
 .ticket__plane{color:var(--coral);}
-.ticket__dest{font-family:var(--display);font-weight:600;font-size:16px;margin-top:4px;color:#cfe0db;}
-.ticket__when{font-family:var(--mono);font-size:11px;color:#9fb3ae;margin-top:6px;letter-spacing:.04em;}
+.ticket__dest{font-family:var(--display);font-weight:600;font-size:16px;margin-top:4px;color:rgba(243,239,228,.82);}
+.ticket__when{font-family:var(--mono);font-size:11px;color:rgba(243,239,228,.55);margin-top:6px;letter-spacing:.04em;}
 .ticket__days{text-align:right;line-height:1;flex:none;}
 .ticket__days-num{font-family:var(--display);font-weight:800;font-size:36px;color:var(--coral);display:block;}
-.ticket__days-unit{font-family:var(--mono);font-size:11px;color:#9fb3ae;}
-.ticket__progress{position:relative;background:#0f5a54;height:30px;display:flex;align-items:center;overflow:hidden;}
+.ticket__days-unit{font-family:var(--mono);font-size:11px;color:rgba(243,239,228,.55);}
+.ticket__progress{position:relative;background:var(--mid);height:30px;display:flex;align-items:center;overflow:hidden;}
 .ticket__progress-bar{position:absolute;left:0;top:0;bottom:0;background:var(--coral);transition:width .3s ease;}
 .ticket__progress-label{position:relative;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:#fff;padding-left:22px;mix-blend-mode:difference;}
 .perf{height:18px;background:var(--card);position:relative;}
@@ -144,7 +144,11 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24
 .addrow input[type=number]{width:54px;font-family:var(--mono);font-size:13px;border:1.5px solid var(--line);border-radius:8px;padding:8px 6px;outline:none;text-align:center;}
 .addrow .ok{font-family:var(--mono);font-size:12px;background:var(--teal);color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;}
 .addrow .cancel{font-family:var(--mono);font-size:12px;background:none;color:var(--muted);border:none;cursor:pointer;padding:8px 6px;}
-.barcode{height:42px;margin:6px 22px 0;opacity:.85;background:repeating-linear-gradient(90deg,var(--ink) 0,var(--ink) 2px,transparent 2px,transparent 4px,var(--ink) 4px,var(--ink) 7px,transparent 7px,transparent 9px,var(--ink) 9px,var(--ink) 10px,transparent 10px,transparent 13px);}
+.tear{position:relative;height:26px;background:var(--card);}
+.tear__line{position:absolute;top:50%;left:20px;right:20px;border-top:2px dashed var(--line);transform:translateY(-50%);}
+.tear::before,.tear::after{content:"";position:absolute;top:50%;width:18px;height:18px;border-radius:50%;background:var(--paper);border:1.5px solid var(--ink);box-sizing:border-box;transform:translateY(-50%);}
+.tear::before{left:-10px;}
+.tear::after{right:-10px;}
 .actions{display:flex;gap:10px;padding:14px 22px 22px;}
 .btn{flex:1;padding:13px;font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;border:none;border-radius:10px;cursor:pointer;transition:filter .15s,transform .08s;}
 .btn:active{transform:translateY(1px);}
@@ -159,8 +163,8 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24
 /* --- navigation interne (hub / catégories / paramètres) --- */
 .backbar{max-width:620px;}
 #tripView .panel,#categoryView .panel,#settingsView .panel{max-width:620px;margin-left:auto;margin-right:auto;}
-.hubsettings{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:#0f5a54;color:#eafff9;border:none;padding:13px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .15s;}
-.hubsettings:hover{background:#11655e;}
+.hubsettings{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--mid);color:#f3efe4;border:none;padding:13px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .15s;}
+.hubsettings:hover{filter:brightness(1.1);}
 .hubcats{padding:4px 16px;}
 .catrow{display:flex;align-items:center;gap:14px;width:100%;background:none;border:none;border-bottom:1px solid var(--line);padding:15px 6px;cursor:pointer;text-align:left;font-family:var(--body);transition:background .12s;}
 .catrow:last-child{border-bottom:none;}
@@ -206,6 +210,22 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24
 .essadd__cat{font-family:var(--body);font-size:14px;border:1.5px solid var(--line);border-radius:10px;padding:11px;outline:none;background:#fff;color:var(--ink);}
 #essAdd{flex:none;}
 .essempty{font-family:var(--body);color:var(--muted);font-size:14px;padding:10px 4px 4px;}
+.hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:30px 20px 26px;max-width:520px;margin:6px auto 0;}
+.hero__svg{width:128px;height:auto;margin-bottom:20px;}
+.hero__title{font-family:var(--display);font-weight:800;font-size:24px;color:var(--ink);margin:0 0 10px;line-height:1.15;}
+.hero__text{font-family:var(--body);font-size:15px;color:var(--muted);line-height:1.55;margin:0 0 24px;max-width:380px;}
+.hero__btn{font-family:var(--mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#fbfaf5;background:var(--coral);border:none;border-radius:12px;padding:15px 26px;cursor:pointer;box-shadow:4px 4px 0 var(--teal-deep);transition:transform .1s,box-shadow .1s;}
+.hero__btn:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--teal-deep);}
+.hero__btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--teal-deep);}
+.themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px;margin-top:8px;}
+.swatch{display:flex;flex-direction:column;gap:11px;padding:13px;background:#fff;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;text-align:left;transition:border-color .12s,transform .08s;}
+.swatch:hover{border-color:var(--teal);}
+.swatch:active{transform:translateY(1px);}
+.swatch--on{border-color:var(--coral);box-shadow:0 0 0 1.5px var(--coral) inset;}
+.swatch__chips{display:flex;gap:5px;}
+.swatch__chips span{width:22px;height:22px;border-radius:6px;border:1px solid rgba(0,0,0,.08);}
+.swatch__name{font-family:var(--display);font-weight:600;font-size:15px;color:var(--ink);}
+.swatch--on .swatch__name::after{content:" ✓";color:var(--coral);}
 </style>
 </head>
 <body>
@@ -219,11 +239,40 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24
     </div>
     <p class="masthead__install">Astuce&nbsp;: « Ajouter à l'écran d'accueil » pour l'installer</p>
   </header>
-  <div class="homebar"><button class="linkbtn" id="openEssentials">★ Mes essentiels</button></div>
+  <div class="homebar"><button class="linkbtn" id="openEssentials">★ Mes essentiels</button><button class="linkbtn" id="openPrefs">⚙ Réglages</button></div>
   <div class="home">
-    <div id="homeEmpty" class="home__empty hidden">Aucun voyage pour l'instant. Créez-en un pour commencer votre liste.</div>
+    <div id="homeEmpty" class="hero hidden">
+      <svg class="hero__svg" viewBox="0 0 120 100" role="img" aria-label="malle">
+        <path d="M52 16 q0 -8 8 -8 q8 0 8 8" fill="none" stroke="var(--coral)" stroke-width="4" stroke-linecap="round"/>
+        <rect x="16" y="22" width="88" height="64" rx="9" fill="var(--card)" stroke="var(--ink)" stroke-width="2.5"/>
+        <line x1="16" y1="44" x2="104" y2="44" stroke="var(--ink)" stroke-width="2.5"/>
+        <rect x="36" y="22" width="11" height="64" fill="var(--coral)"/>
+        <rect x="73" y="22" width="11" height="64" fill="var(--coral)"/>
+        <rect x="34.5" y="38" width="14" height="12" rx="2.5" fill="var(--teal-deep)"/>
+        <rect x="71.5" y="38" width="14" height="12" rx="2.5" fill="var(--teal-deep)"/>
+        <rect x="39" y="41.5" width="5" height="5" fill="var(--card)"/>
+        <rect x="76" y="41.5" width="5" height="5" fill="var(--card)"/>
+        <rect x="22" y="86" width="9" height="6" rx="2" fill="var(--teal-deep)"/>
+        <rect x="89" y="86" width="9" height="6" rx="2" fill="var(--teal-deep)"/>
+      </svg>
+      <h2 class="hero__title">Votre première malle vous attend</h2>
+      <p class="hero__text">Créez un voyage et la liste de bagages se compose toute seule, selon la durée, la météo, les activités et qui vous accompagne.</p>
+      <button class="hero__btn" id="heroNew">+ Créer un voyage</button>
+    </div>
     <div class="home__grid" id="homeGrid"></div>
   </div>
+</div>
+
+<!-- ============ RÉGLAGES ============ -->
+<div id="prefsView" class="hidden">
+  <div class="backbar"><button class="back" id="backFromPrefs">← Mes voyages</button></div>
+  <section class="panel form">
+    <div class="field">
+      <span class="field__label">Thème</span>
+      <p class="essintro">Choisissez l'ambiance de couleurs de l'application. Le changement s'applique immédiatement et partout.</p>
+    </div>
+    <div class="themes" id="themeGrid"></div>
+  </section>
 </div>
 
 <!-- ============ MES ESSENTIELS ============ -->
@@ -300,7 +349,7 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24
     <button class="hubsettings" id="openSettingsBtn">⚙ Paramètres du voyage</button>
     <div class="perf"></div>
     <div class="hubcats" id="hubCats"></div>
-    <div class="barcode"></div>
+    <div class="tear"><span class="tear__line"></span></div>
     <div class="actions">
       <button class="btn btn--primary" id="copyBtn">Copier la liste</button>
       <button class="btn btn--ghost" id="resetBtn" title="Tout décocher">↺</button>
@@ -329,7 +378,7 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24
     </div>
     <div class="perf"></div>
     <div class="ticket__body" id="categoryBody"></div>
-    <div class="barcode"></div>
+    <div class="tear"><span class="tear__line"></span></div>
   </section>
 </div>
 
@@ -597,7 +646,7 @@ const HOUSE='<svg class="homeglyph" viewBox="0 0 24 24" role="img" aria-label="d
 function disarmUncheck(){ uncheckArmed=false; clearTimeout(uncheckTimer); const b=document.getElementById("resetBtn"); if(b){ b.textContent="↺"; b.classList.remove("btn--warn"); } }
 function showView(name){
   disarmUncheck();
-  ["homeView","settingsView","tripView","categoryView","essentialsView"].forEach(v=>document.getElementById(v).classList.toggle("hidden", v!==name));
+  ["homeView","settingsView","tripView","categoryView","essentialsView","prefsView"].forEach(v=>document.getElementById(v).classList.toggle("hidden", v!==name));
   window.scrollTo(0,0);
 }
 
@@ -613,7 +662,9 @@ function ringSVG(pct){
   </div>`;
 }
 function renderHome(){
-  document.getElementById("homeEmpty").classList.toggle("hidden", DB.trips.length>0);
+  const empty=DB.trips.length===0;
+  document.getElementById("homeEmpty").classList.toggle("hidden", !empty);
+  document.getElementById("homeGrid").classList.toggle("hidden", empty);
   const cards=DB.trips.map(t=>{
     const p=progress(t);
     const {valid,reversed}=computeDays(t);
@@ -650,6 +701,7 @@ document.getElementById("homeGrid").addEventListener("click", e=>{
   if(sel("[data-stop]")) return;
   if(sel("[data-open]")){ openTrip(sel("[data-open]").dataset.open); }
 });
+document.getElementById("heroNew").addEventListener("click", ()=>{ const trip=newTrip(); DB.trips.push(trip); save(); openTrip(trip.id); openSettings(); });
 
 /* ---------- OUVERTURE & HUB DU VOYAGE ---------- */
 function openTrip(id){
@@ -931,7 +983,44 @@ function addEssential(){
 document.getElementById("essAdd").addEventListener("click", addEssential);
 document.getElementById("essName").addEventListener("keydown", e=>{ if(e.key==="Enter") addEssential(); });
 
+/* ---------- THÈMES ---------- */
+const THEMES={
+  lagon:{name:"Lagon", v:{teal:"#0d4f4a","teal-deep":"#0a3a36",mid:"#0f5a54",coral:"#ee6c4d",ink:"#16302c",muted:"#6c807b",paper:"#e9e4d8",card:"#fbfaf5",line:"#d8d2c4"}},
+  terracotta:{name:"Terracotta", v:{teal:"#a0563a","teal-deep":"#4f2a20",mid:"#6e3a2c",coral:"#e08a3c",ink:"#3a2820",muted:"#8a7565",paper:"#efe6d6",card:"#fbf7ef",line:"#e0d4c2"}},
+  indigo:{name:"Indigo", v:{teal:"#2f4a8a","teal-deep":"#1a2750",mid:"#26356b",coral:"#ee6c4d",ink:"#1a2236",muted:"#6b7488",paper:"#e6e8f0",card:"#fafbff",line:"#d2d8e6"}},
+  foret:{name:"Forêt", v:{teal:"#3a6b3f","teal-deep":"#1f3a22",mid:"#2c5230",coral:"#e0a13a",ink:"#1d2a1c",muted:"#6a7a64",paper:"#e6ece0",card:"#fafcf6",line:"#d4ddc8"}},
+  prune:{name:"Prune", v:{teal:"#7c3a6b","teal-deep":"#43203a",mid:"#5e2c52",coral:"#e07a9a",ink:"#2e1f2c",muted:"#7d6b78",paper:"#efe6ec",card:"#fdf8fb",line:"#e2d4dd"}}
+};
+function applyTheme(id){
+  const t=THEMES[id]||THEMES.lagon;
+  const r=document.documentElement.style;
+  Object.entries(t.v).forEach(([k,val])=>r.setProperty("--"+k,val));
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute("content", t.v["teal-deep"]);
+}
+function openPrefs(){ renderThemes(); showView("prefsView"); }
+function renderThemes(){
+  const cur=DB.theme||"lagon";
+  document.getElementById("themeGrid").innerHTML=Object.entries(THEMES).map(([id,t])=>`
+    <button class="swatch ${id===cur?'swatch--on':''}" data-theme="${id}">
+      <span class="swatch__chips">
+        <span style="background:${t.v.paper}"></span>
+        <span style="background:${t.v["teal-deep"]}"></span>
+        <span style="background:${t.v.coral}"></span>
+        <span style="background:${t.v.teal}"></span>
+      </span>
+      <span class="swatch__name">${t.name}</span>
+    </button>`).join("");
+}
+document.getElementById("openPrefs").addEventListener("click", openPrefs);
+document.getElementById("backFromPrefs").addEventListener("click", ()=>{ renderHome(); showView("homeView"); });
+document.getElementById("themeGrid").addEventListener("click", e=>{
+  const b=e.target.closest("[data-theme]"); if(!b) return;
+  DB.theme=b.dataset.theme; applyTheme(DB.theme); save(); renderThemes();
+});
+
 /* ---------- init ---------- */
+if(typeof DB.theme!=="string") DB.theme="lagon";
+applyTheme(DB.theme);
 renderHome();
 registerSW();
 
