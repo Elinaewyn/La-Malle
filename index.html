@@ -41,6 +41,7 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24
 .tcard:active{transform:translate(2px,2px);box-shadow:3px 3px 0 var(--teal-deep);}
 .tcard__strip{background:var(--teal-deep);color:#f3efe4;padding:10px 16px;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:.08em;}
 .tcard__strip .arr{color:var(--coral);}
+.homeglyph{width:15px;height:15px;display:inline-block;vertical-align:-2px;}
 .tcard__body{padding:16px;display:flex;align-items:center;justify-content:space-between;gap:14px;}
 .tcard__dest{font-family:var(--display);font-weight:700;font-size:21px;color:var(--ink);line-height:1.15;margin-bottom:4px;}
 .tcard__when{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em;}
@@ -283,7 +284,7 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24
   <section class="panel ticket">
     <div class="ticket__head">
       <div>
-        <div class="ticket__route" id="route">VAL <span class="ticket__plane">→</span> VAL</div>
+        <div class="ticket__route" id="route"></div>
         <div class="ticket__dest" id="ticketDest">Votre voyage</div>
         <div class="ticket__when" id="ticketWhen"></div>
       </div>
@@ -587,11 +588,12 @@ function progress(t){
 /* ---------- helpers ---------- */
 const fmtDate=d=>new Date(d).toLocaleDateString("fr-FR",{day:"numeric",month:"short"});
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const codeOf=t=>(t.destination||"VAL").slice(0,3).toUpperCase().padEnd(3,"X").replace(/[^A-Z]/g,"X");
+const codeOf=t=>{ const d=(t.destination||"").trim().normalize("NFD").replace(/[\u0300-\u036f]/g,""); return d ? d.slice(0,3).toUpperCase().padEnd(3,"X").replace(/[^A-Z]/g,"X") : "•••"; };
 
 /* ---------- ROUTAGE ---------- */
 let currentCat=null;
 let uncheckArmed=false, uncheckTimer=null;
+const HOUSE='<svg class="homeglyph" viewBox="0 0 24 24" role="img" aria-label="départ"><path d="M3 11.4 12 4l9 7.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.6 10.4V20h12.8v-9.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function disarmUncheck(){ uncheckArmed=false; clearTimeout(uncheckTimer); const b=document.getElementById("resetBtn"); if(b){ b.textContent="↺"; b.classList.remove("btn--warn"); } }
 function showView(name){
   disarmUncheck();
@@ -619,7 +621,7 @@ function renderHome(){
     const confirming=confirmDelete===t.id;
     return `<div class="tcard" data-open="${t.id}" role="button" tabindex="0">
       <button class="tcard__del" data-del="${t.id}" aria-label="Supprimer">×</button>
-      <div class="tcard__strip">${esc(codeOf(t))} <span class="arr">→</span> VAL</div>
+      <div class="tcard__strip">${HOUSE} <span class="arr">→</span> ${esc(codeOf(t))}</div>
       <div class="tcard__body">
         <div>
           <div class="tcard__dest">${esc(t.destination||"Voyage sans nom")}</div>
@@ -660,7 +662,7 @@ function goHome(){ save(); renderHome(); showView("homeView"); }
 function renderTripHub(){
   if(!T) return;
   const {days,valid,reversed}=computeDays(T);
-  document.getElementById("route").innerHTML=`${esc(codeOf(T))} <span class="ticket__plane">→</span> VAL`;
+  document.getElementById("route").innerHTML=`${HOUSE} <span class="ticket__plane">→</span> ${esc(codeOf(T))}`;
   document.getElementById("ticketDest").textContent=T.destination||"Votre voyage";
   document.getElementById("ticketWhen").textContent=reversed?"Dates à corriger":((valid&&T.depart&&T.retour)?`${fmtDate(T.depart)} – ${fmtDate(T.retour)}`:"Dates à définir");
   document.getElementById("daysNum").textContent=days;
