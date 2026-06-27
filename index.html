@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>La Malle — Listes de bagages</title>
+<meta name="theme-color" content="#0a3a36" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="La Malle" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="description" content="Générez et suivez vos listes de bagages, adaptées à la durée, la météo, les activités et l'âge des enfants." />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png" />
+<link rel="apple-touch-icon" href="apple-touch-icon-180.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap');
+
+:root{
+  --teal:#0d4f4a; --teal-deep:#0a3a36; --coral:#ee6c4d; --ink:#16302c;
+  --muted:#6c807b; --paper:#e9e4d8; --card:#fbfaf5; --line:#d8d2c4;
+  --display:'Bricolage Grotesque','Inter',system-ui,sans-serif;
+  --body:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;}
+body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24px 16px calc(48px + env(safe-area-inset-bottom));min-height:100vh;-webkit-font-smoothing:antialiased;}
+.hidden{display:none!important;}
+
+.masthead{max-width:1040px;margin:0 auto 20px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;}
+.masthead__mark{font-family:var(--display);font-weight:800;font-size:clamp(26px,6vw,42px);letter-spacing:-.02em;color:var(--teal-deep);line-height:1;}
+.masthead__sub{margin:5px 0 0;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+.masthead__install{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);text-align:right;max-width:160px;line-height:1.5;}
+
+.home{max-width:1040px;margin:0 auto;}
+.home__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+.tcard{position:relative;background:var(--card);border:1.5px solid var(--ink);border-radius:14px;box-shadow:5px 5px 0 var(--teal-deep);overflow:hidden;cursor:pointer;transition:transform .1s,box-shadow .1s;text-align:left;width:100%;font-family:var(--body);}
+.tcard:hover{transform:translate(-1px,-1px);box-shadow:6px 6px 0 var(--teal-deep);}
+.tcard:active{transform:translate(2px,2px);box-shadow:3px 3px 0 var(--teal-deep);}
+.tcard__strip{background:var(--teal-deep);color:#f3efe4;padding:10px 16px;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:.08em;}
+.tcard__strip .arr{color:var(--coral);}
+.tcard__body{padding:16px;display:flex;align-items:center;justify-content:space-between;gap:14px;}
+.tcard__dest{font-family:var(--display);font-weight:700;font-size:21px;color:var(--ink);line-height:1.15;margin-bottom:4px;}
+.tcard__when{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em;}
+.tcard__days{font-family:var(--mono);font-size:11px;color:var(--teal);margin-top:6px;}
+.tcard__del{position:absolute;top:9px;right:9px;width:26px;height:26px;border:none;background:rgba(255,255,255,.14);color:#f3efe4;border-radius:7px;font-size:15px;cursor:pointer;line-height:1;z-index:2;}
+.tcard__del:hover{background:var(--coral);}
+.tcard__confirm{position:absolute;inset:0;background:rgba(10,58,54,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:3;color:#f3efe4;padding:16px;text-align:center;}
+.tcard__confirm p{margin:0;font-family:var(--body);font-size:14px;}
+.tcard__confirm-row{display:flex;gap:10px;}
+.tcard__confirm button{font-family:var(--mono);font-size:12px;border:none;border-radius:8px;padding:9px 16px;cursor:pointer;}
+.tcard__confirm .yes{background:var(--coral);color:#fff;}
+.tcard__confirm .no{background:#fff;color:var(--teal-deep);}
+
+.ring{width:58px;height:58px;flex:none;transform:rotate(-90deg);}
+.ring__bg{fill:none;stroke:var(--line);stroke-width:5;}
+.ring__fg{fill:none;stroke:var(--coral);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .4s ease;}
+.ring-wrap{position:relative;width:58px;height:58px;flex:none;}
+.ring-wrap span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:15px;color:var(--teal-deep);}
+
+.tcard--new{border-style:dashed;box-shadow:none;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:120px;color:var(--teal-deep);}
+.tcard--new:hover{box-shadow:none;background:#fbfaf555;border-color:var(--coral);color:var(--coral);transform:none;}
+.tcard--new .plus{font-family:var(--display);font-weight:800;font-size:30px;line-height:1;margin-bottom:4px;}
+.tcard--new .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;}
+.home__empty{font-family:var(--body);color:var(--muted);font-size:14px;margin:6px 2px 14px;}
+
+.backbar{max-width:1040px;margin:0 auto 16px;}
+.back{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);background:none;border:none;cursor:pointer;padding:6px 0;}
+.back:hover{color:var(--coral);}
+
+.grid{max-width:1040px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+@media(max-width:820px){.grid{grid-template-columns:1fr;}}
+.panel{background:var(--card);border:1.5px solid var(--ink);border-radius:14px;box-shadow:5px 5px 0 var(--teal-deep);}
+
+.form{padding:22px;display:flex;flex-direction:column;gap:20px;}
+.field{display:flex;flex-direction:column;gap:9px;}
+.field__label{font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);}
+.field__input{font-family:var(--display);font-weight:600;font-size:19px;color:var(--ink);background:transparent;border:none;border-bottom:2px solid var(--line);padding:6px 2px;outline:none;transition:border-color .15s;width:100%;}
+.field__input:focus{border-color:var(--coral);}
+.field__input::placeholder{color:#b7b1a3;}
+.dates{display:flex;gap:12px;}
+.dates>label{flex:1;display:flex;flex-direction:column;gap:6px;}
+.dates small{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.date__input{font-family:var(--body);font-size:15px;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:10px;outline:none;width:100%;}
+.date__input:focus{border-color:var(--coral);}
+.dates__sum{font-family:var(--mono);font-size:12px;color:var(--teal);margin-top:4px;}
+.dates__warn{color:var(--coral);}
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{font-family:var(--body);font-size:13.5px;font-weight:500;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:8px 14px;cursor:pointer;transition:background .15s,border-color .15s,color .15s,transform .08s;}
+.chip:hover{border-color:var(--teal);}
+.chip:active{transform:translateY(1px);}
+.chip--on{background:var(--teal);border-color:var(--teal);color:#fbfaf5;}
+
+.kidage{display:flex;flex-direction:column;gap:8px;margin-top:6px;padding-top:14px;border-top:1px dashed var(--line);}
+.kidage__row{display:flex;align-items:center;gap:12px;}
+.kidage__input{width:84px;font-family:var(--body);font-size:15px;border:1.5px solid var(--line);border-radius:10px;padding:9px;outline:none;}
+.kidage__input:focus{border-color:var(--coral);}
+.kidage__band{font-family:var(--mono);font-size:11px;color:var(--teal);letter-spacing:.04em;}
+
+.ticket{padding:0;overflow:hidden;position:sticky;top:16px;}
+@media(max-width:820px){.ticket{position:static;}}
+.ticket__head{background:var(--teal-deep);color:#f3efe4;padding:20px 22px 18px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.ticket__route{font-family:var(--mono);font-weight:700;font-size:21px;letter-spacing:.07em;}
+.ticket__plane{color:var(--coral);}
+.ticket__dest{font-family:var(--display);font-weight:600;font-size:16px;margin-top:4px;color:#cfe0db;}
+.ticket__when{font-family:var(--mono);font-size:11px;color:#9fb3ae;margin-top:6px;letter-spacing:.04em;}
+.ticket__days{text-align:right;line-height:1;flex:none;}
+.ticket__days-num{font-family:var(--display);font-weight:800;font-size:36px;color:var(--coral);display:block;}
+.ticket__days-unit{font-family:var(--mono);font-size:11px;color:#9fb3ae;}
+.ticket__progress{position:relative;background:#0f5a54;height:30px;display:flex;align-items:center;overflow:hidden;}
+.ticket__progress-bar{position:absolute;left:0;top:0;bottom:0;background:var(--coral);transition:width .3s ease;}
+.ticket__progress-label{position:relative;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:#fff;padding-left:22px;mix-blend-mode:difference;}
+.perf{height:18px;background:var(--card);position:relative;}
+.perf::before{content:"";position:absolute;top:50%;left:14px;right:14px;border-top:2px dashed var(--line);transform:translateY(-50%);}
+.ticket__body{padding:2px 22px 6px;}
+.cat{padding:13px 0;border-bottom:1px solid var(--line);}
+.cat:last-child{border-bottom:none;}
+.cat__head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.cat__title{font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--teal);}
+.cat__add{font-family:var(--mono);font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:6px;}
+.cat__add:hover{color:var(--coral);background:#fff;}
+.cat__list{list-style:none;margin:0;padding:0;}
+.line{display:flex;align-items:center;gap:10px;padding:6px 0;}
+.line__check{display:flex;align-items:center;gap:10px;flex:1;min-width:0;background:none;border:none;padding:0;cursor:pointer;text-align:left;font-family:var(--body);}
+.line__box{flex:none;width:20px;height:20px;border:1.5px solid var(--ink);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;background:#fff;transition:background .15s,border-color .15s;}
+.line--on .line__box{background:var(--teal);border-color:var(--teal);}
+.line__name{flex:1;font-size:15px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.line__kid{font-family:var(--mono);font-size:10px;color:var(--coral);border:1px solid var(--coral);border-radius:5px;padding:1px 5px;flex:none;letter-spacing:.05em;}
+.line--on .line__name{color:var(--muted);text-decoration:line-through;}
+.line--on .line__kid{color:var(--muted);border-color:var(--line);}
+.qty{display:flex;align-items:center;flex:none;border:1.5px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;}
+.qty button{width:26px;height:26px;border:none;background:#fff;color:var(--teal-deep);font-size:15px;cursor:pointer;font-family:var(--display);line-height:1;}
+.qty button:hover{background:#f0ece0;}
+.qty span{min-width:26px;text-align:center;font-family:var(--mono);font-weight:700;font-size:13px;color:var(--coral);}
+.line__del{flex:none;width:26px;height:26px;border:none;background:none;color:#c2bcae;font-size:17px;cursor:pointer;border-radius:6px;line-height:1;}
+.line__del:hover{color:var(--coral);background:#fff;}
+.addrow{display:flex;gap:6px;margin:8px 0 2px;align-items:center;}
+.addrow input[type=text]{flex:1;min-width:0;font-family:var(--body);font-size:14px;border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;outline:none;}
+.addrow input[type=text]:focus{border-color:var(--coral);}
+.addrow input[type=number]{width:54px;font-family:var(--mono);font-size:13px;border:1.5px solid var(--line);border-radius:8px;padding:8px 6px;outline:none;text-align:center;}
+.addrow .ok{font-family:var(--mono);font-size:12px;background:var(--teal);color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;}
+.addrow .cancel{font-family:var(--mono);font-size:12px;background:none;color:var(--muted);border:none;cursor:pointer;padding:8px 6px;}
+.barcode{height:42px;margin:6px 22px 0;opacity:.85;background:repeating-linear-gradient(90deg,var(--ink) 0,var(--ink) 2px,transparent 2px,transparent 4px,var(--ink) 4px,var(--ink) 7px,transparent 7px,transparent 9px,var(--ink) 9px,var(--ink) 10px,transparent 10px,transparent 13px);}
+.actions{display:flex;gap:10px;padding:14px 22px 22px;}
+.btn{flex:1;padding:13px;font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;border:none;border-radius:10px;cursor:pointer;transition:filter .15s,transform .08s;}
+.btn:active{transform:translateY(1px);}
+.btn--primary{color:#fbfaf5;background:var(--coral);}
+.btn--primary:hover{filter:brightness(1.06);}
+.btn--ghost{flex:none;color:var(--teal-deep);background:#fff;border:1.5px solid var(--line);}
+.btn--ghost:hover{border-color:var(--teal);}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;}}
+</style>
+</head>
+<body>
+
+<!-- ============ ACCUEIL ============ -->
+<div id="homeView">
+  <header class="masthead">
+    <div>
+      <div class="masthead__mark">✦ La Malle</div>
+      <p class="masthead__sub">Mes voyages</p>
+    </div>
+    <p class="masthead__install">Astuce&nbsp;: « Ajouter à l'écran d'accueil » pour l'installer</p>
+  </header>
+  <div class="home">
+    <div id="homeEmpty" class="home__empty hidden">Aucun voyage pour l'instant. Créez-en un pour commencer votre liste.</div>
+    <div class="home__grid" id="homeGrid"></div>
+  </div>
+</div>
+
+<!-- ============ DÉTAIL VOYAGE ============ -->
+<div id="tripView" class="hidden">
+  <div class="backbar"><button class="back" id="backBtn">← Mes voyages</button></div>
+  <div class="grid">
+    <section class="panel form">
+      <label class="field">
+        <span class="field__label">Destination</span>
+        <input id="destination" class="field__input" placeholder="ex. Lisbonne" />
+      </label>
+      <div class="field">
+        <span class="field__label">Dates du séjour</span>
+        <div class="dates">
+          <label><small>Départ</small><input id="depart" type="date" class="date__input" /></label>
+          <label><small>Retour</small><input id="retour" type="date" class="date__input" /></label>
+        </div>
+        <div id="datesSum" class="dates__sum"></div>
+      </div>
+      <div class="field"><span class="field__label">Météo attendue</span><div class="chips" id="climate"></div></div>
+      <div class="field"><span class="field__label">Types de voyage <span style="text-transform:none;letter-spacing:0;color:#b7b1a3">(plusieurs possibles)</span></span><div class="chips" id="tripType"></div></div>
+      <div class="field"><span class="field__label">Activités prévues</span><div class="chips" id="activities"></div></div>
+      <div class="field">
+        <span class="field__label">Contexte</span>
+        <div class="chips" id="context"></div>
+        <div id="kidAgeWrap" class="kidage hidden">
+          <span class="field__label">Âge de l'enfant</span>
+          <div class="kidage__row">
+            <input id="kidAgeInput" type="number" min="0" max="17" class="kidage__input" placeholder="ans" />
+            <span class="kidage__band" id="kidAgeBand"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel ticket">
+      <div class="ticket__head">
+        <div>
+          <div class="ticket__route" id="route">VAL <span class="ticket__plane">→</span> VAL</div>
+          <div class="ticket__dest" id="ticketDest">Votre voyage</div>
+          <div class="ticket__when" id="ticketWhen"></div>
+        </div>
+        <div class="ticket__days">
+          <span class="ticket__days-num" id="daysNum">1</span>
+          <span class="ticket__days-unit" id="daysUnit">jour</span>
+        </div>
+      </div>
+      <div class="ticket__progress">
+        <div class="ticket__progress-bar" id="progressBar"></div>
+        <span class="ticket__progress-label" id="progressLabel"></span>
+      </div>
+      <div class="perf"></div>
+      <div class="ticket__body" id="ticketBody"></div>
+      <div class="barcode"></div>
+      <div class="actions">
+        <button class="btn btn--primary" id="copyBtn">Copier la liste</button>
+        <button class="btn btn--ghost" id="resetBtn" title="Réinitialiser les ajustements">↺</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ---------- stockage local sûr ---------- */
+const store = (() => {
+  let ok=false, mem={};
+  try{ const k="__t"; localStorage.setItem(k,"1"); localStorage.removeItem(k); ok=true; }catch(e){ ok=false; }
+  return {
+    get(k){ try{ return ok?localStorage.getItem(k):(k in mem?mem[k]:null);}catch(e){return k in mem?mem[k]:null;} },
+    set(k,v){ try{ ok?localStorage.setItem(k,v):(mem[k]=v);}catch(e){mem[k]=v;} }
+  };
+})();
+
+/* ---------- options ---------- */
+const CLIMATES=["Chaud","Tempéré","Froid"];
+const TRIPS=["Plage / Détente","Ville / Culture","Nature / Randonnée","Affaires","Ski / Montagne"];
+const ACTIVITIES=["Baignade","Randonnée","Sport / Fitness","Restaurants / Sorties","Réunions pro","Plongée / Snorkeling","Vélo","Soirée habillée"];
+
+const today=new Date();
+const plus=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
+const iso=d=>d.toISOString().slice(0,10);
+
+function newTrip(){
+  return {
+    id:"t"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    destination:"", depart:iso(today), retour:iso(plus(today,4)),
+    climate:"Tempéré", rain:false, tripTypes:["Ville / Culture"],
+    activities:[], abroad:false, plane:false, camping:false, kids:false, kidAge:4,
+    removed:[], added:[], qty:{}, checked:[]
+  };
+}
+function normalizeTrip(t){
+  if(!Array.isArray(t.tripTypes)) t.tripTypes = t.tripType ? [t.tripType] : ["Ville / Culture"];
+  delete t.tripType;
+  if(typeof t.kidAge!=="number") t.kidAge = 4;
+  ["activities","removed","added","checked"].forEach(k=>{ if(!Array.isArray(t[k])) t[k]=[]; });
+  if(!t.qty || typeof t.qty!=="object") t.qty={};
+  return t;
+}
+
+/* ---------- base de données ---------- */
+let DB = loadDB();
+let T = null;
+let openAddCat = null;
+let confirmDelete = null;
+
+function loadDB(){
+  try{
+    const raw=store.get("envalise_db");
+    if(raw){ const d=JSON.parse(raw); if(d&&Array.isArray(d.trips)){ d.trips.forEach(normalizeTrip); return d; } }
+  }catch(e){}
+  try{
+    const old=store.get("envalise");
+    if(old){ const t=normalizeTrip(Object.assign(newTrip(), JSON.parse(old))); return {trips:[t]}; }
+  }catch(e){}
+  return {trips:[]};
+}
+function save(){ try{ store.set("envalise_db", JSON.stringify(DB)); }catch(e){} }
+
+/* ---------- durée ---------- */
+function computeDays(t){
+  if(!t.depart||!t.retour) return {days:1,valid:false};
+  const a=new Date(t.depart), b=new Date(t.retour);
+  const diff=Math.round((b-a)/86400000);
+  if(isNaN(diff)) return {days:1,valid:false};
+  if(diff<0) return {days:1,valid:false,reversed:true};
+  return {days:diff+1,valid:true};
+}
+
+/* ---------- âge enfant ---------- */
+function kidBand(age){
+  if(age==null||isNaN(age)) age=4;
+  if(age<=2) return "bebe";
+  if(age<=5) return "petit";
+  if(age<=11) return "enfant";
+  return "ado";
+}
+function bandLabel(age){
+  return {bebe:"Bébé (0–2 ans)",petit:"Petit (3–5 ans)",enfant:"Enfant (6–11 ans)",ado:"Ado (12–17 ans)"}[kidBand(age)];
+}
+
+/* ---------- génération ---------- */
+const cap=(n,m)=>Math.min(n,m);
+function generate(t,days){
+  const a=new Set(t.activities);
+  const tt=new Set(t.tripTypes);
+  const formal=tt.has("Affaires");
+  const kid=t.kids;
+  const band=kidBand(t.kidAge);
+  const out=[];
+  const add=(title,items)=>out.push({title,items:items.filter(Boolean)});
+  const it=(name,qty,child)=>{ const o=qty?{name,qty}:{name}; if(child)o.kid=true; return o; };
+  const kit=(name,qty)=>it(name,qty,true); // article enfant
+
+  // ---- Documents & essentiels
+  const docs=[
+    it(t.abroad?"Passeport":"Pièce d'identité"),
+    t.abroad&&it("Copie des documents (papier + cloud)"),
+    t.abroad&&it("Assurance voyage"),
+    it("Portefeuille (cartes, espèces)"),
+    t.abroad&&it("Devises locales"),
+    it("Clés (maison, voiture)"),
+    t.plane&&it("Billets / carte d'embarquement"),
+  ];
+  if(kid){
+    docs.push(
+      t.abroad&&kit("Passeport / pièce d'identité enfant"),
+      kit("Carnet de santé / vaccins enfant"),
+      (band==="bebe"||band==="petit")&&kit("Doudou"),
+      band==="bebe"&&kit("Sac à langer"),
+      band==="bebe"&&kit("Poussette / porte-bébé"),
+      band==="bebe"&&kit("Biberons + lait / eau"),
+      band==="bebe"&&kit("Repas / petits pots", cap(days+1,12))
+    );
+  }
+  add("Documents & essentiels",docs);
+
+  // ---- Vêtements
+  const cl=[
+    it("Sous-vêtements",cap(days+1,14)),
+    it("Chaussettes",cap(days+1,14)),
+    it("T-shirts / hauts",cap(Math.ceil(days*0.75)+1,12)),
+    it(t.climate==="Chaud"?"Shorts":"Pantalons",cap(Math.ceil(days/3)+1,5)),
+    it("Pull / veste légère",t.climate==="Froid"?3:days>5?2:1),
+    it("Pyjama",days>7?2:1),
+    it("Chaussures de marche",1),
+    formal&&it("Tenue formelle (costume / tailleur)",cap(Math.ceil(days/2),4)),
+    formal&&it("Chaussures de ville",1),
+  ];
+  if(kid){
+    const q = band==="bebe"?cap(Math.ceil(days*1.5)+2,20):band==="petit"?cap(days+2,16):cap(days+1,14);
+    cl.push(
+      kit("Tenues enfant", q),
+      band!=="bebe"&&kit("Sous-vêtements enfant",cap(days+1,14)),
+      kit(band==="bebe"?"Gigoteuse":"Pyjama enfant",days>7?2:1),
+      kit("Chaussures enfant",1),
+      band==="bebe"&&kit("Bodys",cap(days+2,16)),
+      band==="bebe"&&kit("Bavoirs",cap(days,8)),
+      t.climate==="Froid"&&kit("Manteau / combinaison chaude enfant")
+    );
+  }
+  add("Vêtements",cl);
+
+  // ---- Trousse de toilette
+  const wash=[
+    it("Brosse à dents + dentifrice"),it("Déodorant"),it("Gel douche / shampoing"),
+    it("Brosse / peigne"),it("Médicaments personnels"),it("Mouchoirs"),
+    t.plane&&it("Format < 100 ml (sac transparent)"),
+  ];
+  if(kid){
+    wash.push(
+      band==="bebe"&&kit("Couches",cap(days*5,80)),
+      band==="bebe"&&kit("Lingettes"),
+      band==="bebe"&&kit("Liniment / crème change"),
+      band==="bebe"&&kit("Sérum physiologique"),
+      kit("Brosse à dents enfant"),
+      kit("Gel lavant / shampoing enfant"),
+      kit("Paracétamol enfant + thermomètre")
+    );
+  }
+  add("Trousse de toilette",wash);
+
+  // ---- Électronique
+  const elec=[
+    it("Téléphone + chargeur"),it("Batterie externe"),it("Écouteurs"),
+    t.abroad&&it("Adaptateur de prise"),
+    formal&&it("Ordinateur portable + chargeur"),
+    t.plane&&it("Oreiller de voyage"),
+  ];
+  if(kid && (band==="petit"||band==="enfant")) elec.push(kit("Tablette + écouteurs enfant"));
+  add("Électronique",elec);
+
+  // ---- Selon la météo
+  const w=[];
+  if(t.climate==="Chaud") w.push(it("Lunettes de soleil"),it("Crème solaire"),it("Chapeau / casquette"),it("Gourde"),it("Sandales"));
+  if(t.climate==="Froid") w.push(it("Manteau chaud"),it("Écharpe, bonnet, gants"),it("Sous-vêtements thermiques",cap(days,4)),it("Chaussettes chaudes",cap(Math.ceil(days/2),6)));
+  if(t.climate==="Tempéré") w.push(it("Veste mi-saison"),it("Une couche supplémentaire"));
+  if(t.rain) w.push(it("Veste imperméable"),it("Parapluie pliant"));
+  if(kid){
+    if(t.climate==="Chaud") w.push(kit("Chapeau enfant"),kit("Crème solaire enfant haute protection"));
+    if(t.climate==="Froid") w.push(kit("Bonnet + gants enfant"));
+    if(t.rain) w.push(kit("Imperméable enfant"));
+  }
+  add("Selon la météo",w);
+
+  // ---- Une catégorie par activité / type de voyage
+  if(a.has("Baignade")||tt.has("Plage / Détente")){
+    const items=[it("Maillot de bain",days>3?2:1),it("Serviette de plage"),it("Tongs"),it("Lunettes de soleil"),t.climate!=="Chaud"&&it("Crème solaire")];
+    if(kid) items.push(band==="bebe"?kit("Couches de bain"):kit("Maillot anti-UV enfant"), (band==="petit"||band==="enfant")&&kit("Brassards / bouée"));
+    add("Plage & baignade",items);
+  }
+  if(a.has("Randonnée")||tt.has("Nature / Randonnée")){
+    const items=[it("Chaussures de randonnée"),it("Sac à dos"),it("Gourde"),it("Trousse de premiers secours")];
+    if(kid) items.push(band==="bebe"&&kit("Porte-bébé de randonnée"), kit("En-cas enfant"));
+    add("Randonnée & nature",items);
+  }
+  if(a.has("Sport / Fitness")) add("Sport / Fitness",[it("Tenue de sport",cap(Math.ceil(days/2),4)),it("Baskets"),it("Bouteille d'eau")]);
+  if(a.has("Restaurants / Sorties")||a.has("Soirée habillée")) add("Sorties & restaurants",[it("Tenue habillée"),it("Chaussures élégantes"),a.has("Soirée habillée")&&it("Accessoires / bijoux")]);
+  if(a.has("Réunions pro")) add("Réunions pro",[it("Cartes de visite"),it("Bloc-notes + stylo")]);
+  if(a.has("Plongée / Snorkeling")) add("Plongée / Snorkeling",[it("Masque + tuba"),it("Chaussons aquatiques"),it("Lycra anti-UV")]);
+  if(a.has("Vélo")) add("Vélo",[it("Casque"),it("Gants de vélo"),it("Tenue cycliste")]);
+  if(tt.has("Ski / Montagne")){
+    const items=[it("Combinaison / pantalon de ski"),it("Gants de ski"),it("Masque"),it("Bonnet"),it("Crème solaire haute protection"),it("Après-ski")];
+    if(kid) items.push(kit("Combinaison de ski enfant"),kit("Gants + bonnet enfant"));
+    add("Ski / Montagne",items);
+  }
+  if(t.camping) add("Camping",[it("Tente"),it("Sac de couchage"),it("Lampe frontale"),it("Réchaud"),it("Matelas / tapis de sol")]);
+
+  return out.filter(s=>s.items.length||t.added.some(x=>x.cat===s.title));
+}
+
+function buildList(t,days){
+  const removed=new Set(t.removed);
+  return generate(t,days).map(sec=>{
+    let items=sec.items.filter(i=>!removed.has(i.name))
+      .map(i=>({name:i.name,qty:(i.name in t.qty)?t.qty[i.name]:i.qty,kid:!!i.kid,custom:false}));
+    t.added.filter(x=>x.cat===sec.title).forEach(x=>{
+      items.push({name:x.name,qty:(x.name in t.qty)?t.qty[x.name]:x.qty,kid:false,custom:true});
+    });
+    return {title:sec.title,items};
+  }).filter(s=>s.items.length);
+}
+
+function progress(t){
+  const {days}=computeDays(t);
+  const names=[]; buildList(t,days).forEach(s=>s.items.forEach(i=>names.push(i.name)));
+  const set=new Set(t.checked);
+  const total=names.length, packed=names.filter(n=>set.has(n)).length;
+  return {packed,total,pct:total?Math.round(packed/total*100):0,days};
+}
+
+/* ---------- helpers ---------- */
+const fmtDate=d=>new Date(d).toLocaleDateString("fr-FR",{day:"numeric",month:"short"});
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const codeOf=t=>(t.destination||"VAL").slice(0,3).toUpperCase().padEnd(3,"X").replace(/[^A-Z]/g,"X");
+
+/* ---------- ACCUEIL ---------- */
+function ringSVG(pct){
+  const r=24, C=2*Math.PI*r, off=C*(1-pct/100);
+  return `<div class="ring-wrap">
+    <svg class="ring" viewBox="0 0 58 58">
+      <circle class="ring__bg" cx="29" cy="29" r="${r}"></circle>
+      <circle class="ring__fg" cx="29" cy="29" r="${r}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"></circle>
+    </svg>
+    <span>${pct}%</span>
+  </div>`;
+}
+function renderHome(){
+  document.getElementById("homeEmpty").classList.toggle("hidden", DB.trips.length>0);
+  const cards=DB.trips.map(t=>{
+    const p=progress(t);
+    const {valid,reversed}=computeDays(t);
+    const when=reversed?"Dates à corriger":(valid?`${fmtDate(t.depart)} – ${fmtDate(t.retour)}`:"Dates à définir");
+    const confirming=confirmDelete===t.id;
+    return `<div class="tcard" data-open="${t.id}" role="button" tabindex="0">
+      <button class="tcard__del" data-del="${t.id}" aria-label="Supprimer">×</button>
+      <div class="tcard__strip">${esc(codeOf(t))} <span class="arr">→</span> VAL</div>
+      <div class="tcard__body">
+        <div>
+          <div class="tcard__dest">${esc(t.destination||"Voyage sans nom")}</div>
+          <div class="tcard__when">${esc(when)}</div>
+          <div class="tcard__days">${p.days} ${p.days>1?"jours":"jour"} · ${p.packed}/${p.total} préparés</div>
+        </div>
+        ${ringSVG(p.pct)}
+      </div>
+      ${confirming?`<div class="tcard__confirm" data-stop="1">
+          <p>Supprimer ce voyage&nbsp;?</p>
+          <div class="tcard__confirm-row">
+            <button class="yes" data-delyes="${t.id}">Supprimer</button>
+            <button class="no" data-delno="1">Annuler</button>
+          </div></div>`:""}
+    </div>`;
+  }).join("");
+  document.getElementById("homeGrid").innerHTML = cards + `<div class="tcard tcard--new" data-new="1" role="button" tabindex="0">
+    <span class="plus">+</span><span class="lbl">Nouveau voyage</span></div>`;
+}
+
+document.getElementById("homeGrid").addEventListener("click", e=>{
+  const sel=q=>e.target.closest(q);
+  if(sel("[data-new]")){ const trip=newTrip(); DB.trips.push(trip); save(); openTrip(trip.id); return; }
+  if(sel("[data-delyes]")){ const id=sel("[data-delyes]").dataset.delyes; DB.trips=DB.trips.filter(x=>x.id!==id); confirmDelete=null; save(); renderHome(); return; }
+  if(sel("[data-delno]")){ confirmDelete=null; renderHome(); return; }
+  if(sel("[data-del]")){ confirmDelete=sel("[data-del]").dataset.del; renderHome(); return; }
+  if(sel("[data-stop]")) return;
+  if(sel("[data-open]")){ openTrip(sel("[data-open]").dataset.open); }
+});
+
+/* ---------- NAVIGATION ---------- */
+function openTrip(id){
+  T=DB.trips.find(x=>x.id===id); if(!T) return;
+  openAddCat=null; confirmDelete=null;
+  document.getElementById("destination").value=T.destination;
+  document.getElementById("depart").value=T.depart;
+  document.getElementById("retour").value=T.retour;
+  renderChips(); updateKidAge(true); renderTicket();
+  document.getElementById("homeView").classList.add("hidden");
+  document.getElementById("tripView").classList.remove("hidden");
+  window.scrollTo(0,0);
+}
+function goHome(){
+  save(); renderHome();
+  document.getElementById("tripView").classList.add("hidden");
+  document.getElementById("homeView").classList.remove("hidden");
+  window.scrollTo(0,0);
+}
+document.getElementById("backBtn").addEventListener("click", goHome);
+
+/* ---------- FORMULAIRE ---------- */
+function makeChips(id,options,isActive,onPick){
+  const el=document.getElementById(id); el.innerHTML="";
+  options.forEach(o=>{
+    const b=document.createElement("button");
+    b.type="button"; b.className="chip"+(isActive(o.value)?" chip--on":"");
+    b.textContent=o.label;
+    b.addEventListener("click",()=>{ onPick(o.value); renderChips(); updateKidAge(false); renderTicket(); save(); });
+    el.appendChild(b);
+  });
+}
+function renderChips(){
+  if(!T) return;
+  makeChips("climate",
+    CLIMATES.map(c=>({label:c,value:c})).concat([{label:"☂ Pluie probable",value:"__rain"}]),
+    v=>v==="__rain"?T.rain:T.climate===v,
+    v=>{ v==="__rain"?T.rain=!T.rain:T.climate=v; });
+  makeChips("tripType",TRIPS.map(x=>({label:x,value:x})),
+    v=>T.tripTypes.includes(v),
+    v=>{ T.tripTypes=T.tripTypes.includes(v)?T.tripTypes.filter(x=>x!==v):T.tripTypes.concat(v); });
+  makeChips("activities",ACTIVITIES.map(a=>({label:a,value:a})),
+    v=>T.activities.includes(v),
+    v=>{ T.activities=T.activities.includes(v)?T.activities.filter(x=>x!==v):T.activities.concat(v); });
+  makeChips("context",
+    [{label:"✈ Étranger",value:"abroad"},{label:"Avion",value:"plane"},{label:"Camping",value:"camping"},{label:"Avec enfants",value:"kids"}],
+    v=>T[v], v=>{ T[v]=!T[v]; });
+}
+function updateKidAge(syncValue){
+  const wrap=document.getElementById("kidAgeWrap");
+  if(!T){ wrap.classList.add("hidden"); return; }
+  wrap.classList.toggle("hidden", !T.kids);
+  if(syncValue) document.getElementById("kidAgeInput").value = (T.kidAge==null?"":T.kidAge);
+  document.getElementById("kidAgeBand").textContent = T.kids ? bandLabel(T.kidAge) : "";
+}
+document.getElementById("destination").addEventListener("input",e=>{ if(T){T.destination=e.target.value; renderTicket(); save();} });
+document.getElementById("depart").addEventListener("change",e=>{ if(T){T.depart=e.target.value; renderTicket(); save();} });
+document.getElementById("retour").addEventListener("change",e=>{ if(T){T.retour=e.target.value; renderTicket(); save();} });
+document.getElementById("kidAgeInput").addEventListener("input",e=>{
+  if(!T) return;
+  const v=parseInt(e.target.value,10);
+  T.kidAge = isNaN(v)?null:Math.max(0,Math.min(17,v));
+  updateKidAge(false); renderTicket(); save();
+});
+document.getElementById("resetBtn").addEventListener("click",()=>{ if(T){T.removed=[];T.added=[];T.qty={}; renderTicket(); save();} });
+document.getElementById("copyBtn").addEventListener("click",copyList);
+
+/* ---------- BILLET ---------- */
+function renderTicket(){
+  if(!T) return;
+  const {days,valid,reversed}=computeDays(T);
+  const sum=document.getElementById("datesSum");
+  if(reversed) sum.innerHTML='<span class="dates__warn">Le retour précède le départ.</span>';
+  else if(valid) sum.textContent=`${days} ${days>1?"jours":"jour"} de bagages`;
+  else sum.textContent="Choisissez vos dates.";
+
+  document.getElementById("route").innerHTML=`${esc(codeOf(T))} <span class="ticket__plane">→</span> VAL`;
+  document.getElementById("ticketDest").textContent=T.destination||"Votre voyage";
+  document.getElementById("ticketWhen").textContent=(valid&&T.depart&&T.retour)?`${fmtDate(T.depart)} – ${fmtDate(T.retour)}`:"";
+  document.getElementById("daysNum").textContent=days;
+  document.getElementById("daysUnit").textContent=days>1?"jours":"jour";
+
+  const sections=buildList(T,days);
+  const names=[]; sections.forEach(s=>s.items.forEach(i=>names.push(i.name)));
+  const set=new Set(T.checked);
+  const packed=names.filter(n=>set.has(n)).length, total=names.length;
+  const pct=total?Math.round(packed/total*100):0;
+  document.getElementById("progressBar").style.width=pct+"%";
+  document.getElementById("progressLabel").textContent=`${packed} / ${total} préparés · ${pct}%`;
+
+  document.getElementById("ticketBody").innerHTML=sections.map(sec=>{
+    const rows=sec.items.map(it=>{
+      const on=set.has(it.name);
+      const qty=it.qty?`<div class="qty">
+        <button data-act="dec" data-name="${esc(it.name)}" data-base="${it.qty}">–</button>
+        <span>${it.qty}</span>
+        <button data-act="inc" data-name="${esc(it.name)}" data-base="${it.qty}">+</button></div>`:"";
+      const tag=it.kid?`<span class="line__kid">enfant</span>`:"";
+      return `<li class="line ${on?'line--on':''}">
+        <button class="line__check" data-act="check" data-name="${esc(it.name)}">
+          <span class="line__box">${on?'✓':''}</span>
+          <span class="line__name">${esc(it.name)}</span></button>
+        ${tag}${qty}
+        <button class="line__del" data-act="del" data-name="${esc(it.name)}">×</button></li>`;
+    }).join("");
+    const addUI=openAddCat===sec.title?`<div class="addrow">
+        <input type="text" id="addName" placeholder="Nouvel article…" />
+        <input type="number" id="addQty" min="1" max="99" placeholder="qté" />
+        <button class="ok" data-act="addok" data-cat="${esc(sec.title)}">Ajouter</button>
+        <button class="cancel" data-act="addcancel">Annuler</button></div>`:"";
+    return `<div class="cat">
+      <div class="cat__head"><span class="cat__title">${esc(sec.title)}</span>
+        <button class="cat__add" data-act="addopen" data-cat="${esc(sec.title)}">+ ajouter</button></div>
+      <ul class="cat__list">${rows}</ul>${addUI}</div>`;
+  }).join("");
+
+  if(openAddCat){ const f=document.getElementById("addName"); if(f) setTimeout(()=>f.focus(),0); }
+}
+
+document.getElementById("ticketBody").addEventListener("click",e=>{
+  const btn=e.target.closest("button"); if(!btn||!T) return;
+  const act=btn.dataset.act, name=btn.dataset.name;
+  if(act==="check"){ const s=new Set(T.checked); s.has(name)?s.delete(name):s.add(name); T.checked=[...s]; }
+  else if(act==="del"){
+    if(T.added.some(x=>x.name===name)) T.added=T.added.filter(x=>x.name!==name);
+    else if(!T.removed.includes(name)) T.removed=T.removed.concat(name);
+    delete T.qty[name];
+  }
+  else if(act==="inc"||act==="dec"){
+    const base=parseInt(btn.dataset.base,10)||1;
+    const cur=(name in T.qty)?T.qty[name]:base;
+    T.qty[name]=Math.max(1,Math.min(99,cur+(act==="inc"?1:-1)));
+  }
+  else if(act==="addopen"){ openAddCat=btn.dataset.cat; }
+  else if(act==="addcancel"){ openAddCat=null; }
+  else if(act==="addok"){
+    const n=document.getElementById("addName"), q=document.getElementById("addQty");
+    const val=n?n.value.trim():"";
+    if(val){ const qv=q&&q.value?Math.max(1,Math.min(99,parseInt(q.value,10))):undefined; T.added=T.added.concat({cat:btn.dataset.cat,name:val,qty:qv}); }
+    openAddCat=null;
+  } else return;
+  renderTicket(); save();
+});
+
+/* ---------- copier ---------- */
+function copyList(){
+  if(!T) return;
+  const {days}=computeDays(T);
+  const text=buildList(T,days).map(s=>s.title.toUpperCase()+"\n"+s.items.map(i=>`  - ${i.name}${i.qty?` ×${i.qty}`:""}`).join("\n")).join("\n\n");
+  const full=`LA MALLE — ${T.destination||"Voyage"} · ${days} ${days>1?"jours":"jour"}\n\n${text}`;
+  const btn=document.getElementById("copyBtn");
+  const done=()=>{btn.textContent="✓ Copié";setTimeout(()=>btn.textContent="Copier la liste",1800);};
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(full).then(done).catch(()=>fb(full,done));
+  else fb(full,done);
+}
+function fb(t,cb){ const ta=document.createElement("textarea"); ta.value=t; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); try{document.execCommand("copy");cb();}catch(e){} document.body.removeChild(ta); }
+
+/* ---------- service worker (mode hors-ligne + installation) ---------- */
+function registerSW(){
+  if("serviceWorker" in navigator){
+    try{ navigator.serviceWorker.register("sw.js").catch(()=>{}); }catch(e){}
+  }
+}
+
+/* ---------- init ---------- */
+renderHome();
+registerSW();
+</script>
+</body>
+</html>

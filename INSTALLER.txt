@@ -1,0 +1,75 @@
+# La Malle — installer l'application sur votre téléphone
+
+Cette application est une **PWA** : une fois hébergée sur une adresse HTTPS, votre
+téléphone l'installe avec une **vraie icône dans le tiroir d'applications** et
+l'ouvre en plein écran, sans barre de navigateur. Elle fonctionne hors-ligne et
+sauvegarde vos voyages localement.
+
+Contenu du dossier :
+Tous les fichiers doivent être déposés AU MÊME NIVEAU (à la racine du dépôt) :
+- index.html        → l'application
+- manifest.json     → nom, icônes, couleurs
+- sw.js             → service worker (mode hors-ligne)
+- les 6 fichiers .png → icônes de l'application
+
+------------------------------------------------------------
+ÉTAPE 1 — Héberger en HTTPS (gratuit, ~5 min, avec GitHub Pages)
+------------------------------------------------------------
+1. Créez un compte sur https://github.com (gratuit).
+2. Créez un nouveau dépôt « repository » public, par ex. « la-malle ».
+3. Bouton « Add file » → « Upload files » : déposez TOUS les fichiers
+   (index.html, manifest.json, sw.js et les 6 fichiers .png) au même niveau,
+   puis « Commit changes ». Ne créez pas de sous-dossier.
+4. Onglet « Settings » → « Pages » → Source : branche « main », dossier « / (root) »
+   → « Save ».
+5. Au bout d'une minute, GitHub affiche une adresse du type :
+   https://VOTRE-NOM.github.io/la-malle/
+   C'est l'URL de votre application.
+
+(Alternatives tout aussi gratuites : Netlify Drop — https://app.netlify.com/drop —
+où il suffit de glisser le dossier ; ou Cloudflare Pages.)
+
+------------------------------------------------------------
+ÉTAPE 2 — Installer l'app sur le téléphone
+------------------------------------------------------------
+ANDROID (Chrome) :
+1. Ouvrez l'URL ci-dessus dans Chrome.
+2. Une bannière « Installer l'application » apparaît — sinon menu ⋮ →
+   « Installer l'application » / « Ajouter à l'écran d'accueil ».
+3. L'icône La Malle apparaît dans votre tiroir d'applications, comme une app du Store.
+
+iPHONE (Safari) :
+1. Ouvrez l'URL dans Safari.
+2. Bouton Partager → « Sur l'écran d'accueil ».
+3. L'icône apparaît sur l'écran d'accueil.
+
+------------------------------------------------------------
+ÉTAPE 3 (optionnelle) — Un vrai paquet pour le Google Play Store
+------------------------------------------------------------
+Pour une présence dans le Play Store (et non plus seulement une installation
+directe) :
+1. Allez sur https://www.pwabuilder.com et entrez l'URL de l'étape 1.
+2. L'outil analyse la PWA et génère un paquet Android (APK pour tester, AAB pour
+   publier), icône comprise.
+3. Pour publier : il faut un compte Google Play Console (frais uniques de 25 $),
+   y téléverser l'AAB, remplir la fiche (description, captures) et soumettre à
+   validation.
+
+Note : une PWA installée via l'étape 2 a déjà son icône et son plein écran ; le
+Play Store n'est nécessaire que si vous voulez une diffusion publique via le store.
+
+------------------------------------------------------------
+METTRE À JOUR L'APPLICATION PLUS TARD
+------------------------------------------------------------
+Le service worker est réglé en « réseau d'abord » : aucune manipulation
+technique, aucun numéro de version à changer.
+
+1. Remplacez le ou les fichiers modifiés sur votre hébergeur (le plus souvent
+   uniquement index.html), par-dessus les anciens.
+   - Netlify Drop : reglissez le dossier complet.
+   - GitHub : Add file → Upload files → Commit.
+2. Rouvrez l'application sur le téléphone (en étant connecté) : la nouvelle
+   version est là.
+
+Pas besoin de réinstaller, l'icône reste en place, et vos voyages enregistrés
+sont conservés (ils sont stockés dans le téléphone, pas dans les fichiers).
