@@ -151,6 +151,8 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24
 .btn--primary:hover{filter:brightness(1.06);}
 .btn--ghost{flex:none;color:var(--teal-deep);background:#fff;border:1.5px solid var(--line);}
 .btn--ghost:hover{border-color:var(--teal);}
+.btn--warn{background:var(--coral);border-color:var(--coral);color:#fff;}
+.btn--warn:hover{background:var(--coral);}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
 
 /* --- navigation interne (hub / catégories / paramètres) --- */
@@ -300,7 +302,7 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24
     <div class="barcode"></div>
     <div class="actions">
       <button class="btn btn--primary" id="copyBtn">Copier la liste</button>
-      <button class="btn btn--ghost" id="resetBtn" title="Réinitialiser les ajustements">↺</button>
+      <button class="btn btn--ghost" id="resetBtn" title="Tout décocher">↺</button>
     </div>
   </section>
 </div>
@@ -589,7 +591,10 @@ const codeOf=t=>(t.destination||"VAL").slice(0,3).toUpperCase().padEnd(3,"X").re
 
 /* ---------- ROUTAGE ---------- */
 let currentCat=null;
+let uncheckArmed=false, uncheckTimer=null;
+function disarmUncheck(){ uncheckArmed=false; clearTimeout(uncheckTimer); const b=document.getElementById("resetBtn"); if(b){ b.textContent="↺"; b.classList.remove("btn--warn"); } }
 function showView(name){
+  disarmUncheck();
   ["homeView","settingsView","tripView","categoryView","essentialsView"].forEach(v=>document.getElementById(v).classList.toggle("hidden", v!==name));
   window.scrollTo(0,0);
 }
@@ -691,7 +696,17 @@ document.getElementById("hubCats").addEventListener("click", e=>{
 document.getElementById("backHome").addEventListener("click", goHome);
 document.getElementById("openSettingsBtn").addEventListener("click", openSettings);
 document.getElementById("copyBtn").addEventListener("click", copyList);
-document.getElementById("resetBtn").addEventListener("click", ()=>{ if(T){T.removed=[];T.added=[];T.qty={}; renderTripHub(); save();} });
+document.getElementById("resetBtn").addEventListener("click", ()=>{
+  if(!T) return;
+  const b=document.getElementById("resetBtn");
+  if(!uncheckArmed){
+    uncheckArmed=true; b.textContent="Tout décocher ?"; b.classList.add("btn--warn");
+    clearTimeout(uncheckTimer); uncheckTimer=setTimeout(disarmUncheck, 3000);
+    return;
+  }
+  disarmUncheck();
+  T.checked=[]; renderTripHub(); save();
+});
 
 /* ---------- PARAMÈTRES ---------- */
 function openSettings(){
