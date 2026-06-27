@@ -127,9 +127,10 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24
 .line__box{flex:none;width:20px;height:20px;border:1.5px solid var(--ink);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;background:#fff;transition:background .15s,border-color .15s;}
 .line--on .line__box{background:var(--teal);border-color:var(--teal);}
 .line__name{flex:1;font-size:15px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.line__kid{font-family:var(--mono);font-size:10px;color:var(--coral);border:1px solid var(--coral);border-radius:5px;padding:1px 5px;flex:none;letter-spacing:.05em;}
+.line__kid{display:inline-flex;align-items:center;justify-content:center;flex:none;color:var(--coral);}
+.kidicon{width:18px;height:18px;display:block;}
 .line--on .line__name{color:var(--muted);text-decoration:line-through;}
-.line--on .line__kid{color:var(--muted);border-color:var(--line);}
+.line--on .line__kid{color:var(--muted);}
 .qty{display:flex;align-items:center;flex:none;border:1.5px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;}
 .qty button{width:26px;height:26px;border:none;background:#fff;color:var(--teal-deep);font-size:15px;cursor:pointer;font-family:var(--display);line-height:1;}
 .qty button:hover{background:#f0ece0;}
@@ -151,6 +152,40 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24
 .btn--ghost{flex:none;color:var(--teal-deep);background:#fff;border:1.5px solid var(--line);}
 .btn--ghost:hover{border-color:var(--teal);}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
+
+/* --- navigation interne (hub / catégories / paramètres) --- */
+.backbar{max-width:620px;}
+#tripView .panel,#categoryView .panel,#settingsView .panel{max-width:620px;margin-left:auto;margin-right:auto;}
+.hubsettings{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:#0f5a54;color:#eafff9;border:none;padding:13px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .15s;}
+.hubsettings:hover{background:#11655e;}
+.hubcats{padding:4px 16px;}
+.catrow{display:flex;align-items:center;gap:14px;width:100%;background:none;border:none;border-bottom:1px solid var(--line);padding:15px 6px;cursor:pointer;text-align:left;font-family:var(--body);transition:background .12s;}
+.catrow:last-child{border-bottom:none;}
+.catrow:hover{background:#fff;}
+.catrow:active{transform:translateY(1px);}
+.catrow__main{flex:1;min-width:0;}
+.catrow__name{font-family:var(--display);font-weight:600;font-size:16px;color:var(--ink);margin-bottom:8px;}
+.catrow__bar{height:6px;background:var(--line);border-radius:99px;overflow:hidden;}
+.catrow__bar span{display:block;height:100%;background:var(--coral);border-radius:99px;transition:width .3s;}
+.catrow__meta{font-family:var(--mono);font-size:12px;color:var(--muted);flex:none;min-width:44px;text-align:right;}
+.catrow__chev{font-family:var(--display);font-weight:800;font-size:20px;color:var(--teal);flex:none;}
+.catrow--done .catrow__bar span{background:var(--teal);}
+.ticket__dest--big{font-size:22px;color:#f3efe4;}
+#settingsView .btn--primary{width:100%;margin-top:6px;}
+.emptynote{font-family:var(--body);color:var(--muted);font-size:14px;padding:14px 6px;}
+.catbackbar{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.catpager{display:flex;align-items:center;gap:8px;}
+.catpager__btn{width:34px;height:34px;border:1.5px solid var(--line);background:#fff;border-radius:9px;font-family:var(--display);font-weight:800;font-size:18px;color:var(--teal-deep);cursor:pointer;line-height:1;transition:background .12s,border-color .12s;}
+.catpager__btn:hover{border-color:var(--teal);}
+.catpager__btn--off{opacity:.35;cursor:default;}
+.catpager__pos{font-family:var(--mono);font-size:12px;color:var(--muted);min-width:46px;text-align:center;}
+.cattools{display:flex;justify-content:flex-end;padding:10px 22px 0;}
+.toggle{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--teal);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:7px 13px;cursor:pointer;transition:background .12s,border-color .12s,color .12s;}
+.toggle:hover{border-color:var(--teal);}
+.toggle--on{background:var(--teal);border-color:var(--teal);color:#fbfaf5;}
+@keyframes catin{from{opacity:0;transform:translateX(var(--catdx,0));}to{opacity:1;transform:none;}}
+.catanim{animation:catin .22s ease;}
+.allchecked{font-family:var(--display);font-weight:600;color:var(--teal);font-size:16px;padding:18px 6px;text-align:center;}
 </style>
 </head>
 <body>
@@ -170,64 +205,94 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24
   </div>
 </div>
 
-<!-- ============ DÉTAIL VOYAGE ============ -->
-<div id="tripView" class="hidden">
-  <div class="backbar"><button class="back" id="backBtn">← Mes voyages</button></div>
-  <div class="grid">
-    <section class="panel form">
-      <label class="field">
-        <span class="field__label">Destination</span>
-        <input id="destination" class="field__input" placeholder="ex. Lisbonne" />
-      </label>
-      <div class="field">
-        <span class="field__label">Dates du séjour</span>
-        <div class="dates">
-          <label><small>Départ</small><input id="depart" type="date" class="date__input" /></label>
-          <label><small>Retour</small><input id="retour" type="date" class="date__input" /></label>
-        </div>
-        <div id="datesSum" class="dates__sum"></div>
+<!-- ============ PARAMÈTRES ============ -->
+<div id="settingsView" class="hidden">
+  <div class="backbar"><button class="back" id="backFromSettings">← Retour au voyage</button></div>
+  <section class="panel form">
+    <label class="field">
+      <span class="field__label">Destination</span>
+      <input id="destination" class="field__input" placeholder="ex. Lisbonne" />
+    </label>
+    <div class="field">
+      <span class="field__label">Dates du séjour</span>
+      <div class="dates">
+        <label><small>Départ</small><input id="depart" type="date" class="date__input" /></label>
+        <label><small>Retour</small><input id="retour" type="date" class="date__input" /></label>
       </div>
-      <div class="field"><span class="field__label">Météo attendue</span><div class="chips" id="climate"></div></div>
-      <div class="field"><span class="field__label">Types de voyage <span style="text-transform:none;letter-spacing:0;color:#b7b1a3">(plusieurs possibles)</span></span><div class="chips" id="tripType"></div></div>
-      <div class="field"><span class="field__label">Activités prévues</span><div class="chips" id="activities"></div></div>
-      <div class="field">
-        <span class="field__label">Contexte</span>
-        <div class="chips" id="context"></div>
-        <div id="kidAgeWrap" class="kidage hidden">
-          <span class="field__label">Âge de l'enfant</span>
-          <div class="kidage__row">
-            <input id="kidAgeInput" type="number" min="0" max="17" class="kidage__input" placeholder="ans" />
-            <span class="kidage__band" id="kidAgeBand"></span>
-          </div>
+      <div id="datesSum" class="dates__sum"></div>
+    </div>
+    <div class="field"><span class="field__label">Météo attendue</span><div class="chips" id="climate"></div></div>
+    <div class="field"><span class="field__label">Types de voyage <span style="text-transform:none;letter-spacing:0;color:#b7b1a3">(plusieurs possibles)</span></span><div class="chips" id="tripType"></div></div>
+    <div class="field"><span class="field__label">Activités prévues</span><div class="chips" id="activities"></div></div>
+    <div class="field"><span class="field__label">Moyen de transport</span><div class="chips" id="transport"></div></div>
+    <div class="field">
+      <span class="field__label">Contexte</span>
+      <div class="chips" id="context"></div>
+      <div id="kidAgeWrap" class="kidage hidden">
+        <span class="field__label">Âge de l'enfant</span>
+        <div class="kidage__row">
+          <input id="kidAgeInput" type="number" min="0" max="17" class="kidage__input" placeholder="ans" />
+          <span class="kidage__band" id="kidAgeBand"></span>
         </div>
       </div>
-    </section>
+    </div>
+    <button class="btn btn--primary" id="settingsDone">Voir les catégories →</button>
+  </section>
+</div>
 
-    <section class="panel ticket">
-      <div class="ticket__head">
-        <div>
-          <div class="ticket__route" id="route">VAL <span class="ticket__plane">→</span> VAL</div>
-          <div class="ticket__dest" id="ticketDest">Votre voyage</div>
-          <div class="ticket__when" id="ticketWhen"></div>
-        </div>
-        <div class="ticket__days">
-          <span class="ticket__days-num" id="daysNum">1</span>
-          <span class="ticket__days-unit" id="daysUnit">jour</span>
-        </div>
+<!-- ============ VOYAGE (hub) ============ -->
+<div id="tripView" class="hidden">
+  <div class="backbar"><button class="back" id="backHome">← Mes voyages</button></div>
+  <section class="panel ticket">
+    <div class="ticket__head">
+      <div>
+        <div class="ticket__route" id="route">VAL <span class="ticket__plane">→</span> VAL</div>
+        <div class="ticket__dest" id="ticketDest">Votre voyage</div>
+        <div class="ticket__when" id="ticketWhen"></div>
       </div>
-      <div class="ticket__progress">
-        <div class="ticket__progress-bar" id="progressBar"></div>
-        <span class="ticket__progress-label" id="progressLabel"></span>
+      <div class="ticket__days">
+        <span class="ticket__days-num" id="daysNum">1</span>
+        <span class="ticket__days-unit" id="daysUnit">jour</span>
       </div>
-      <div class="perf"></div>
-      <div class="ticket__body" id="ticketBody"></div>
-      <div class="barcode"></div>
-      <div class="actions">
-        <button class="btn btn--primary" id="copyBtn">Copier la liste</button>
-        <button class="btn btn--ghost" id="resetBtn" title="Réinitialiser les ajustements">↺</button>
-      </div>
-    </section>
+    </div>
+    <div class="ticket__progress">
+      <div class="ticket__progress-bar" id="progressBar"></div>
+      <span class="ticket__progress-label" id="progressLabel"></span>
+    </div>
+    <button class="hubsettings" id="openSettingsBtn">⚙ Paramètres du voyage</button>
+    <div class="perf"></div>
+    <div class="hubcats" id="hubCats"></div>
+    <div class="barcode"></div>
+    <div class="actions">
+      <button class="btn btn--primary" id="copyBtn">Copier la liste</button>
+      <button class="btn btn--ghost" id="resetBtn" title="Réinitialiser les ajustements">↺</button>
+    </div>
+  </section>
+</div>
+
+<!-- ============ CATÉGORIE ============ -->
+<div id="categoryView" class="hidden">
+  <div class="backbar catbackbar">
+    <button class="back" id="backFromCategory">← Catégories</button>
+    <div class="catpager">
+      <button class="catpager__btn" id="catPrev" aria-label="Catégorie précédente">‹</button>
+      <span class="catpager__pos" id="catPos">1 / 1</span>
+      <button class="catpager__btn" id="catNext" aria-label="Catégorie suivante">›</button>
+    </div>
   </div>
+  <section class="panel ticket">
+    <div class="ticket__head">
+      <div><div class="ticket__dest ticket__dest--big" id="catTitle">Catégorie</div></div>
+      <div class="ticket__days"><span class="ticket__days-num" id="catPct">0%</span></div>
+    </div>
+    <div class="ticket__progress">
+      <div class="ticket__progress-bar" id="catBar"></div>
+      <span class="ticket__progress-label" id="catLabel"></span>
+    </div>
+    <div class="perf"></div>
+    <div class="ticket__body" id="categoryBody"></div>
+    <div class="barcode"></div>
+  </section>
 </div>
 
 <script>
@@ -246,7 +311,8 @@ const store = (() => {
 /* ---------- options ---------- */
 const CLIMATES=["Chaud","Tempéré","Froid"];
 const TRIPS=["Plage / Détente","Ville / Culture","Nature / Randonnée","Affaires","Ski / Montagne"];
-const ACTIVITIES=["Baignade","Randonnée","Sport / Fitness","Restaurants / Sorties","Réunions pro","Plongée / Snorkeling","Vélo","Soirée habillée"];
+const ACTIVITIES=["Baignade","Balade / Visite","Sport / Fitness","Restaurants / Sorties","Réunions pro","Plongée / Snorkeling","Vélo","Soirée habillée"];
+const TRANSPORTS=["Avion","Voiture","Train","Bateau","Bus"];
 
 const today=new Date();
 const plus=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
@@ -257,15 +323,22 @@ function newTrip(){
     id:"t"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
     destination:"", depart:iso(today), retour:iso(plus(today,4)),
     climate:"Tempéré", rain:false, tripTypes:["Ville / Culture"],
-    activities:[], abroad:false, plane:false, camping:false, kids:false, kidAge:4,
+    activities:[], abroad:false, kids:false, kidAge:4, transports:[],
     removed:[], added:[], qty:{}, checked:[]
   };
 }
 function normalizeTrip(t){
   if(!Array.isArray(t.tripTypes)) t.tripTypes = t.tripType ? [t.tripType] : ["Ville / Culture"];
   delete t.tripType;
+  if(!Array.isArray(t.transports)) t.transports = t.plane ? ["Avion"] : [];
+  delete t.plane; delete t.camping;
   if(typeof t.kidAge!=="number") t.kidAge = 4;
-  ["activities","removed","added","checked"].forEach(k=>{ if(!Array.isArray(t[k])) t[k]=[]; });
+  ["activities","removed","added","checked","transports"].forEach(k=>{ if(!Array.isArray(t[k])) t[k]=[]; });
+  if(t.activities.includes("Balade")||t.activities.includes("Visite")){
+    t.activities=t.activities.filter(x=>x!=="Balade"&&x!=="Visite");
+    if(!t.activities.includes("Balade / Visite")) t.activities.push("Balade / Visite");
+  }
+  t.added.forEach(x=>{ if(x.cat==="Balade"||x.cat==="Visites & musées") x.cat="Balades & visites"; });
   if(!t.qty || typeof t.qty!=="object") t.qty={};
   return t;
 }
@@ -316,6 +389,7 @@ const cap=(n,m)=>Math.min(n,m);
 function generate(t,days){
   const a=new Set(t.activities);
   const tt=new Set(t.tripTypes);
+  const tr=new Set(t.transports);
   const formal=tt.has("Affaires");
   const kid=t.kids;
   const band=kidBand(t.kidAge);
@@ -332,7 +406,6 @@ function generate(t,days){
     it("Portefeuille (cartes, espèces)"),
     t.abroad&&it("Devises locales"),
     it("Clés (maison, voiture)"),
-    t.plane&&it("Billets / carte d'embarquement"),
   ];
   if(kid){
     docs.push(
@@ -346,6 +419,16 @@ function generate(t,days){
     );
   }
   add("Documents & essentiels",docs);
+
+  // ---- Transport
+  const trans=[];
+  if(tr.has("Avion")) trans.push(it("Billets / carte d'embarquement"),it("Liquides < 100 ml (sac transparent)"),it("Oreiller de voyage"),it("Bouchons / masque de sommeil"));
+  if(tr.has("Voiture")) trans.push(it("Permis de conduire"),it("Chargeur voiture (allume-cigare)"),it("GPS / itinéraire hors-ligne"),it("En-cas pour la route"));
+  if(tr.has("Train")) trans.push(it("Billets de train"),it("En-cas"),it("Livre / divertissement"));
+  if(tr.has("Bateau")) trans.push(it("Billets / réservation"),it("Anti-mal de mer"),it("Coupe-vent"));
+  if(tr.has("Bus")) trans.push(it("Billets"),it("Oreiller de nuque"),it("En-cas"));
+  const _seen=new Set();
+  add("Transport", trans.filter(x=>x && !_seen.has(x.name) && _seen.add(x.name)));
 
   // ---- Vêtements
   const cl=[
@@ -377,7 +460,6 @@ function generate(t,days){
   const wash=[
     it("Brosse à dents + dentifrice"),it("Déodorant"),it("Gel douche / shampoing"),
     it("Brosse / peigne"),it("Médicaments personnels"),it("Mouchoirs"),
-    t.plane&&it("Format < 100 ml (sac transparent)"),
   ];
   if(kid){
     wash.push(
@@ -397,7 +479,6 @@ function generate(t,days){
     it("Téléphone + chargeur"),it("Batterie externe"),it("Écouteurs"),
     t.abroad&&it("Adaptateur de prise"),
     formal&&it("Ordinateur portable + chargeur"),
-    t.plane&&it("Oreiller de voyage"),
   ];
   if(kid && (band==="petit"||band==="enfant")) elec.push(kit("Tablette + écouteurs enfant"));
   add("Électronique",elec);
@@ -421,7 +502,8 @@ function generate(t,days){
     if(kid) items.push(band==="bebe"?kit("Couches de bain"):kit("Maillot anti-UV enfant"), (band==="petit"||band==="enfant")&&kit("Brassards / bouée"));
     add("Plage & baignade",items);
   }
-  if(a.has("Randonnée")||tt.has("Nature / Randonnée")){
+  if(a.has("Balade / Visite")) add("Balades & visites",[it("Chaussures confortables"),it("Petit sac à dos"),it("Gourde"),it("Billets / réservations"),it("Appareil photo")]);
+  if(tt.has("Nature / Randonnée")){
     const items=[it("Chaussures de randonnée"),it("Sac à dos"),it("Gourde"),it("Trousse de premiers secours")];
     if(kid) items.push(band==="bebe"&&kit("Porte-bébé de randonnée"), kit("En-cas enfant"));
     add("Randonnée & nature",items);
@@ -436,7 +518,6 @@ function generate(t,days){
     if(kid) items.push(kit("Combinaison de ski enfant"),kit("Gants + bonnet enfant"));
     add("Ski / Montagne",items);
   }
-  if(t.camping) add("Camping",[it("Tente"),it("Sac de couchage"),it("Lampe frontale"),it("Réchaud"),it("Matelas / tapis de sol")]);
 
   return out.filter(s=>s.items.length||t.added.some(x=>x.cat===s.title));
 }
@@ -466,7 +547,14 @@ const fmtDate=d=>new Date(d).toLocaleDateString("fr-FR",{day:"numeric",month:"sh
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const codeOf=t=>(t.destination||"VAL").slice(0,3).toUpperCase().padEnd(3,"X").replace(/[^A-Z]/g,"X");
 
-/* ---------- ACCUEIL ---------- */
+/* ---------- ROUTAGE ---------- */
+let currentCat=null;
+function showView(name){
+  ["homeView","settingsView","tripView","categoryView"].forEach(v=>document.getElementById(v).classList.toggle("hidden", v!==name));
+  window.scrollTo(0,0);
+}
+
+/* ---------- ACCUEIL (liste des voyages) ---------- */
 function ringSVG(pct){
   const r=24, C=2*Math.PI*r, off=C*(1-pct/100);
   return `<div class="ring-wrap">
@@ -506,10 +594,9 @@ function renderHome(){
   document.getElementById("homeGrid").innerHTML = cards + `<div class="tcard tcard--new" data-new="1" role="button" tabindex="0">
     <span class="plus">+</span><span class="lbl">Nouveau voyage</span></div>`;
 }
-
 document.getElementById("homeGrid").addEventListener("click", e=>{
   const sel=q=>e.target.closest(q);
-  if(sel("[data-new]")){ const trip=newTrip(); DB.trips.push(trip); save(); openTrip(trip.id); return; }
+  if(sel("[data-new]")){ const trip=newTrip(); DB.trips.push(trip); save(); openTrip(trip.id); openSettings(); return; }
   if(sel("[data-delyes]")){ const id=sel("[data-delyes]").dataset.delyes; DB.trips=DB.trips.filter(x=>x.id!==id); confirmDelete=null; save(); renderHome(); return; }
   if(sel("[data-delno]")){ confirmDelete=null; renderHome(); return; }
   if(sel("[data-del]")){ confirmDelete=sel("[data-del]").dataset.del; renderHome(); return; }
@@ -517,34 +604,79 @@ document.getElementById("homeGrid").addEventListener("click", e=>{
   if(sel("[data-open]")){ openTrip(sel("[data-open]").dataset.open); }
 });
 
-/* ---------- NAVIGATION ---------- */
+/* ---------- OUVERTURE & HUB DU VOYAGE ---------- */
 function openTrip(id){
   T=DB.trips.find(x=>x.id===id); if(!T) return;
-  openAddCat=null; confirmDelete=null;
+  confirmDelete=null; openAddCat=null; currentCat=null;
+  renderTripHub(); showView("tripView");
+}
+function goHome(){ save(); renderHome(); showView("homeView"); }
+
+function renderTripHub(){
+  if(!T) return;
+  const {days,valid,reversed}=computeDays(T);
+  document.getElementById("route").innerHTML=`${esc(codeOf(T))} <span class="ticket__plane">→</span> VAL`;
+  document.getElementById("ticketDest").textContent=T.destination||"Votre voyage";
+  document.getElementById("ticketWhen").textContent=reversed?"Dates à corriger":((valid&&T.depart&&T.retour)?`${fmtDate(T.depart)} – ${fmtDate(T.retour)}`:"Dates à définir");
+  document.getElementById("daysNum").textContent=days;
+  document.getElementById("daysUnit").textContent=days>1?"jours":"jour";
+
+  const sections=buildList(T,days);
+  const set=new Set(T.checked);
+  let allP=0, allT=0;
+  const rows=sections.map(sec=>{
+    const tot=sec.items.length, pk=sec.items.filter(i=>set.has(i.name)).length;
+    allP+=pk; allT+=tot;
+    const pct=tot?Math.round(pk/tot*100):0;
+    const done=tot>0 && pk===tot;
+    return `<button class="catrow ${done?'catrow--done':''}" data-cat="${esc(sec.title)}">
+      <div class="catrow__main">
+        <div class="catrow__name">${esc(sec.title)}</div>
+        <div class="catrow__bar"><span style="width:${pct}%"></span></div>
+      </div>
+      <div class="catrow__meta">${pk}/${tot}</div>
+      <div class="catrow__chev">›</div>
+    </button>`;
+  }).join("");
+  document.getElementById("hubCats").innerHTML = rows || `<p class="emptynote">Aucune catégorie pour l'instant. Ouvrez les paramètres pour définir votre voyage.</p>`;
+
+  const pctAll=allT?Math.round(allP/allT*100):0;
+  document.getElementById("progressBar").style.width=pctAll+"%";
+  document.getElementById("progressLabel").textContent=`${allP} / ${allT} préparés · ${pctAll}%`;
+}
+
+document.getElementById("hubCats").addEventListener("click", e=>{
+  const b=e.target.closest("[data-cat]"); if(b) openCategory(b.dataset.cat);
+});
+document.getElementById("backHome").addEventListener("click", goHome);
+document.getElementById("openSettingsBtn").addEventListener("click", openSettings);
+document.getElementById("copyBtn").addEventListener("click", copyList);
+document.getElementById("resetBtn").addEventListener("click", ()=>{ if(T){T.removed=[];T.added=[];T.qty={}; renderTripHub(); save();} });
+
+/* ---------- PARAMÈTRES ---------- */
+function openSettings(){
+  if(!T) return;
   document.getElementById("destination").value=T.destination;
   document.getElementById("depart").value=T.depart;
   document.getElementById("retour").value=T.retour;
-  renderChips(); updateKidAge(true); renderTicket();
-  document.getElementById("homeView").classList.add("hidden");
-  document.getElementById("tripView").classList.remove("hidden");
-  window.scrollTo(0,0);
+  renderChips(); updateKidAge(true); updateDatesSum();
+  showView("settingsView");
 }
-function goHome(){
-  save(); renderHome();
-  document.getElementById("tripView").classList.add("hidden");
-  document.getElementById("homeView").classList.remove("hidden");
-  window.scrollTo(0,0);
+function updateDatesSum(){
+  if(!T) return;
+  const {days,valid,reversed}=computeDays(T);
+  const el=document.getElementById("datesSum");
+  if(reversed) el.innerHTML='<span class="dates__warn">Le retour précède le départ.</span>';
+  else if(valid) el.textContent=`${days} ${days>1?"jours":"jour"} de bagages`;
+  else el.textContent="Choisissez vos dates.";
 }
-document.getElementById("backBtn").addEventListener("click", goHome);
-
-/* ---------- FORMULAIRE ---------- */
 function makeChips(id,options,isActive,onPick){
   const el=document.getElementById(id); el.innerHTML="";
   options.forEach(o=>{
     const b=document.createElement("button");
     b.type="button"; b.className="chip"+(isActive(o.value)?" chip--on":"");
     b.textContent=o.label;
-    b.addEventListener("click",()=>{ onPick(o.value); renderChips(); updateKidAge(false); renderTicket(); save(); });
+    b.addEventListener("click",()=>{ onPick(o.value); renderChips(); updateKidAge(false); save(); });
     el.appendChild(b);
   });
 }
@@ -560,8 +692,11 @@ function renderChips(){
   makeChips("activities",ACTIVITIES.map(a=>({label:a,value:a})),
     v=>T.activities.includes(v),
     v=>{ T.activities=T.activities.includes(v)?T.activities.filter(x=>x!==v):T.activities.concat(v); });
+  makeChips("transport",TRANSPORTS.map(x=>({label:x,value:x})),
+    v=>T.transports.includes(v),
+    v=>{ T.transports=T.transports.includes(v)?T.transports.filter(x=>x!==v):T.transports.concat(v); });
   makeChips("context",
-    [{label:"✈ Étranger",value:"abroad"},{label:"Avion",value:"plane"},{label:"Camping",value:"camping"},{label:"Avec enfants",value:"kids"}],
+    [{label:"✈ Étranger",value:"abroad"},{label:"Avec enfants",value:"kids"}],
     v=>T[v], v=>{ T[v]=!T[v]; });
 }
 function updateKidAge(syncValue){
@@ -571,71 +706,98 @@ function updateKidAge(syncValue){
   if(syncValue) document.getElementById("kidAgeInput").value = (T.kidAge==null?"":T.kidAge);
   document.getElementById("kidAgeBand").textContent = T.kids ? bandLabel(T.kidAge) : "";
 }
-document.getElementById("destination").addEventListener("input",e=>{ if(T){T.destination=e.target.value; renderTicket(); save();} });
-document.getElementById("depart").addEventListener("change",e=>{ if(T){T.depart=e.target.value; renderTicket(); save();} });
-document.getElementById("retour").addEventListener("change",e=>{ if(T){T.retour=e.target.value; renderTicket(); save();} });
+document.getElementById("destination").addEventListener("input",e=>{ if(T){T.destination=e.target.value; save();} });
+document.getElementById("depart").addEventListener("change",e=>{ if(T){T.depart=e.target.value; updateDatesSum(); save();} });
+document.getElementById("retour").addEventListener("change",e=>{ if(T){T.retour=e.target.value; updateDatesSum(); save();} });
 document.getElementById("kidAgeInput").addEventListener("input",e=>{
   if(!T) return;
   const v=parseInt(e.target.value,10);
   T.kidAge = isNaN(v)?null:Math.max(0,Math.min(17,v));
-  updateKidAge(false); renderTicket(); save();
+  updateKidAge(false); save();
 });
-document.getElementById("resetBtn").addEventListener("click",()=>{ if(T){T.removed=[];T.added=[];T.qty={}; renderTicket(); save();} });
-document.getElementById("copyBtn").addEventListener("click",copyList);
+document.getElementById("settingsDone").addEventListener("click", ()=>{ renderTripHub(); showView("tripView"); });
+document.getElementById("backFromSettings").addEventListener("click", ()=>{ renderTripHub(); showView("tripView"); });
 
-/* ---------- BILLET ---------- */
-function renderTicket(){
-  if(!T) return;
-  const {days,valid,reversed}=computeDays(T);
-  const sum=document.getElementById("datesSum");
-  if(reversed) sum.innerHTML='<span class="dates__warn">Le retour précède le départ.</span>';
-  else if(valid) sum.textContent=`${days} ${days>1?"jours":"jour"} de bagages`;
-  else sum.textContent="Choisissez vos dates.";
+/* ---------- PAGE CATÉGORIE ---------- */
+function openCategory(title){ currentCat=title; openAddCat=null; navDir=0; renderCategory(); showView("categoryView"); }
+document.getElementById("backFromCategory").addEventListener("click", ()=>{ renderTripHub(); showView("tripView"); });
 
-  document.getElementById("route").innerHTML=`${esc(codeOf(T))} <span class="ticket__plane">→</span> VAL`;
-  document.getElementById("ticketDest").textContent=T.destination||"Votre voyage";
-  document.getElementById("ticketWhen").textContent=(valid&&T.depart&&T.retour)?`${fmtDate(T.depart)} – ${fmtDate(T.retour)}`:"";
-  document.getElementById("daysNum").textContent=days;
-  document.getElementById("daysUnit").textContent=days>1?"jours":"jour";
+/* navigation entre catégories : flèches + balayage */
+let navDir=0;
+if(typeof DB.hideChecked!=="boolean") DB.hideChecked=false;
+function catList(){ const {days}=computeDays(T); return buildList(T,days).map(s=>s.title); }
+function goCat(delta){
+  const list=catList(), i=list.indexOf(currentCat);
+  if(i<0) return;
+  const j=i+delta;
+  if(j<0||j>=list.length) return;
+  navDir=delta; currentCat=list[j]; openAddCat=null; renderCategory();
+}
+document.getElementById("catPrev").addEventListener("click",()=>goCat(-1));
+document.getElementById("catNext").addEventListener("click",()=>goCat(1));
+(function(){
+  const zone=document.getElementById("categoryView");
+  let x0=null,y0=null,t0=0;
+  zone.addEventListener("touchstart",e=>{ const t=e.changedTouches[0]; x0=t.clientX; y0=t.clientY; t0=Date.now(); },{passive:true});
+  zone.addEventListener("touchend",e=>{
+    if(x0==null) return;
+    const t=e.changedTouches[0], dx=t.clientX-x0, dy=t.clientY-y0; x0=null;
+    if(Date.now()-t0>800) return;
+    if(Math.abs(dx)<60 || Math.abs(dx)<Math.abs(dy)*1.6) return;
+    goCat(dx<0?1:-1);
+  },{passive:true});
+})();
 
-  const sections=buildList(T,days);
-  const names=[]; sections.forEach(s=>s.items.forEach(i=>names.push(i.name)));
+function renderCategory(){
+  if(!T||currentCat==null) return;
+  const {days}=computeDays(T);
+  const sec=buildList(T,days).find(s=>s.title===currentCat);
+  document.getElementById("catTitle").textContent=currentCat;
   const set=new Set(T.checked);
-  const packed=names.filter(n=>set.has(n)).length, total=names.length;
-  const pct=total?Math.round(packed/total*100):0;
-  document.getElementById("progressBar").style.width=pct+"%";
-  document.getElementById("progressLabel").textContent=`${packed} / ${total} préparés · ${pct}%`;
+  const items=sec?sec.items:[];
+  const tot=items.length, pk=items.filter(i=>set.has(i.name)).length;
+  const pct=tot?Math.round(pk/tot*100):0;
+  document.getElementById("catPct").textContent=pct+"%";
+  document.getElementById("catBar").style.width=pct+"%";
+  document.getElementById("catLabel").textContent=`${pk} / ${tot} préparés`;
 
-  document.getElementById("ticketBody").innerHTML=sections.map(sec=>{
-    const rows=sec.items.map(it=>{
-      const on=set.has(it.name);
-      const qty=it.qty?`<div class="qty">
-        <button data-act="dec" data-name="${esc(it.name)}" data-base="${it.qty}">–</button>
-        <span>${it.qty}</span>
-        <button data-act="inc" data-name="${esc(it.name)}" data-base="${it.qty}">+</button></div>`:"";
-      const tag=it.kid?`<span class="line__kid">enfant</span>`:"";
-      return `<li class="line ${on?'line--on':''}">
-        <button class="line__check" data-act="check" data-name="${esc(it.name)}">
-          <span class="line__box">${on?'✓':''}</span>
-          <span class="line__name">${esc(it.name)}</span></button>
-        ${tag}${qty}
-        <button class="line__del" data-act="del" data-name="${esc(it.name)}">×</button></li>`;
-    }).join("");
-    const addUI=openAddCat===sec.title?`<div class="addrow">
-        <input type="text" id="addName" placeholder="Nouvel article…" />
-        <input type="number" id="addQty" min="1" max="99" placeholder="qté" />
-        <button class="ok" data-act="addok" data-cat="${esc(sec.title)}">Ajouter</button>
-        <button class="cancel" data-act="addcancel">Annuler</button></div>`:"";
-    return `<div class="cat">
-      <div class="cat__head"><span class="cat__title">${esc(sec.title)}</span>
-        <button class="cat__add" data-act="addopen" data-cat="${esc(sec.title)}">+ ajouter</button></div>
-      <ul class="cat__list">${rows}</ul>${addUI}</div>`;
+  const list=catList(), idx=list.indexOf(currentCat);
+  document.getElementById("catPos").textContent=(idx+1)+" / "+list.length;
+  const prevB=document.getElementById("catPrev"), nextB=document.getElementById("catNext");
+  prevB.classList.toggle("catpager__btn--off", idx<=0); prevB.disabled=idx<=0;
+  nextB.classList.toggle("catpager__btn--off", idx>=list.length-1); nextB.disabled=idx>=list.length-1;
+
+  const hide=!!DB.hideChecked;
+  const shown = hide ? items.filter(i=>!set.has(i.name)) : items;
+  const rows=shown.map(it=>{
+    const on=set.has(it.name);
+    const qty=it.qty?`<div class="qty"><button data-act="dec" data-name="${esc(it.name)}" data-base="${it.qty}">–</button><span>${it.qty}</span><button data-act="inc" data-name="${esc(it.name)}" data-base="${it.qty}">+</button></div>`:"";
+    const tag=it.kid?`<span class="line__kid" title="Article pour l'enfant"><svg class="kidicon" viewBox="0 0 24 24" role="img" aria-label="bébé"><circle cx="12" cy="10" r="6.2" fill="currentColor"/><path d="M12 2.6c2.2 0 3 1.6 1.9 2.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="9.7" cy="9.6" r="1.05" fill="#fff"/><circle cx="14.3" cy="9.6" r="1.05" fill="#fff"/><path d="M9.8 12.4c1.3 1.1 3.1 1.1 4.4 0" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span>`:"";
+    return `<li class="line ${on?'line--on':''}">
+      <button class="line__check" data-act="check" data-name="${esc(it.name)}">
+        <span class="line__box">${on?'✓':''}</span>
+        <span class="line__name">${esc(it.name)}</span></button>
+      ${tag}${qty}
+      <button class="line__del" data-act="del" data-name="${esc(it.name)}">×</button></li>`;
   }).join("");
-
-  if(openAddCat){ const f=document.getElementById("addName"); if(f) setTimeout(()=>f.focus(),0); }
+  const addUI=openAddCat===currentCat?`<div class="addrow">
+      <input type="text" id="addName" placeholder="Nouvel article…" />
+      <input type="number" id="addQty" min="1" max="99" placeholder="qté" />
+      <button class="ok" data-act="addok">Ajouter</button>
+      <button class="cancel" data-act="addcancel">Annuler</button></div>`:"";
+  let empty="";
+  if(tot===0) empty=`<p class="emptynote">Aucun article ici pour l'instant. Ajoutez-en un ci-dessous.</p>`;
+  else if(shown.length===0) empty=`<p class="allchecked">Tout est coché ✦</p>`;
+  const tools=`<div class="cattools"><button class="toggle ${hide?'toggle--on':''}" data-act="togglehide">${hide?'Afficher tout':'Masquer les cochés'}</button></div>`;
+  const dx = navDir>0?"24px":navDir<0?"-24px":"0px"; navDir=0;
+  document.getElementById("categoryBody").innerHTML=`<div class="catanim" style="--catdx:${dx}">${tools}<div class="cat">
+    <div class="cat__head"><span class="cat__title">${esc(currentCat)}</span>
+      <button class="cat__add" data-act="addopen">+ ajouter</button></div>
+    <ul class="cat__list">${rows}</ul>${empty}${addUI}</div></div>`;
+  if(openAddCat===currentCat){ const f=document.getElementById("addName"); if(f) setTimeout(()=>f.focus(),0); }
 }
 
-document.getElementById("ticketBody").addEventListener("click",e=>{
+document.getElementById("categoryBody").addEventListener("click", e=>{
   const btn=e.target.closest("button"); if(!btn||!T) return;
   const act=btn.dataset.act, name=btn.dataset.name;
   if(act==="check"){ const s=new Set(T.checked); s.has(name)?s.delete(name):s.add(name); T.checked=[...s]; }
@@ -649,15 +811,16 @@ document.getElementById("ticketBody").addEventListener("click",e=>{
     const cur=(name in T.qty)?T.qty[name]:base;
     T.qty[name]=Math.max(1,Math.min(99,cur+(act==="inc"?1:-1)));
   }
-  else if(act==="addopen"){ openAddCat=btn.dataset.cat; }
+  else if(act==="togglehide"){ DB.hideChecked=!DB.hideChecked; }
+  else if(act==="addopen"){ openAddCat=currentCat; }
   else if(act==="addcancel"){ openAddCat=null; }
   else if(act==="addok"){
     const n=document.getElementById("addName"), q=document.getElementById("addQty");
     const val=n?n.value.trim():"";
-    if(val){ const qv=q&&q.value?Math.max(1,Math.min(99,parseInt(q.value,10))):undefined; T.added=T.added.concat({cat:btn.dataset.cat,name:val,qty:qv}); }
+    if(val){ const qv=q&&q.value?Math.max(1,Math.min(99,parseInt(q.value,10))):undefined; T.added=T.added.concat({cat:currentCat,name:val,qty:qv}); }
     openAddCat=null;
   } else return;
-  renderTicket(); save();
+  renderCategory(); save();
 });
 
 /* ---------- copier ---------- */
@@ -673,7 +836,7 @@ function copyList(){
 }
 function fb(t,cb){ const ta=document.createElement("textarea"); ta.value=t; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); try{document.execCommand("copy");cb();}catch(e){} document.body.removeChild(ta); }
 
-/* ---------- service worker (mode hors-ligne + installation) ---------- */
+/* ---------- service worker ---------- */
 function registerSW(){
   if("serviceWorker" in navigator){
     try{ navigator.serviceWorker.register("sw.js").catch(()=>{}); }catch(e){}
@@ -683,6 +846,7 @@ function registerSW(){
 /* ---------- init ---------- */
 renderHome();
 registerSW();
+
 </script>
 </body>
 </html>
