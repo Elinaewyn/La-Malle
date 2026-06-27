@@ -186,6 +186,23 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24
 @keyframes catin{from{opacity:0;transform:translateX(var(--catdx,0));}to{opacity:1;transform:none;}}
 .catanim{animation:catin .22s ease;}
 .allchecked{font-family:var(--display);font-weight:600;color:var(--teal);font-size:16px;padding:18px 6px;text-align:center;}
+.homebar{display:flex;justify-content:flex-end;max-width:1040px;margin:0 auto 14px;}
+.linkbtn{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--teal-deep);background:#fff;border:1.5px solid var(--ink);border-radius:999px;padding:9px 16px;cursor:pointer;box-shadow:3px 3px 0 var(--teal-deep);transition:transform .1s,box-shadow .1s;}
+.linkbtn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--teal-deep);}
+.linkbtn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--teal-deep);}
+.essintro{font-family:var(--body);font-size:13px;color:var(--muted);line-height:1.5;margin:2px 0 0;}
+.essrow{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--line);}
+.essrow:last-child{border-bottom:none;}
+.essrow__name{flex:1;min-width:0;font-size:15px;color:var(--ink);overflow-wrap:anywhere;}
+.essrow__cat{font-family:var(--mono);font-size:10px;color:var(--teal);border:1px solid var(--line);border-radius:6px;padding:2px 7px;flex:none;}
+.essrow__del{flex:none;width:28px;height:28px;border:none;background:none;color:#c2bcae;font-size:18px;cursor:pointer;border-radius:6px;line-height:1;}
+.essrow__del:hover{color:var(--coral);background:#fff;}
+.essadd{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px;}
+.essadd__name{flex:1;min-width:150px;font-family:var(--body);font-size:14px;border:1.5px solid var(--line);border-radius:10px;padding:11px;outline:none;}
+.essadd__name:focus{border-color:var(--coral);}
+.essadd__cat{font-family:var(--body);font-size:14px;border:1.5px solid var(--line);border-radius:10px;padding:11px;outline:none;background:#fff;color:var(--ink);}
+#essAdd{flex:none;}
+.essempty{font-family:var(--body);color:var(--muted);font-size:14px;padding:10px 4px 4px;}
 </style>
 </head>
 <body>
@@ -199,10 +216,28 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24
     </div>
     <p class="masthead__install">Astuce&nbsp;: « Ajouter à l'écran d'accueil » pour l'installer</p>
   </header>
+  <div class="homebar"><button class="linkbtn" id="openEssentials">★ Mes essentiels</button></div>
   <div class="home">
     <div id="homeEmpty" class="home__empty hidden">Aucun voyage pour l'instant. Créez-en un pour commencer votre liste.</div>
     <div class="home__grid" id="homeGrid"></div>
   </div>
+</div>
+
+<!-- ============ MES ESSENTIELS ============ -->
+<div id="essentialsView" class="hidden">
+  <div class="backbar"><button class="back" id="backFromEssentials">← Mes voyages</button></div>
+  <section class="panel form">
+    <div class="field">
+      <span class="field__label">Mes essentiels</span>
+      <p class="essintro">Ces articles sont ajoutés automatiquement à chaque voyage, dans la catégorie choisie. Vous pouvez toujours les retirer ou ajuster leur quantité voyage par voyage.</p>
+    </div>
+    <div id="essList"></div>
+    <div class="essadd">
+      <input type="text" id="essName" class="essadd__name" placeholder="Nouvel essentiel…" />
+      <select id="essCat" class="essadd__cat"></select>
+      <button class="btn btn--primary" id="essAdd">Ajouter</button>
+    </div>
+  </section>
 </div>
 
 <!-- ============ PARAMÈTRES ============ -->
@@ -313,6 +348,7 @@ const CLIMATES=["Chaud","Tempéré","Froid"];
 const TRIPS=["Plage / Détente","Ville / Culture","Nature / Randonnée","Affaires","Ski / Montagne"];
 const ACTIVITIES=["Baignade","Balade / Visite","Sport / Fitness","Restaurants / Sorties","Réunions pro","Plongée / Snorkeling","Vélo","Soirée habillée"];
 const TRANSPORTS=["Avion","Voiture","Train","Bateau","Bus"];
+const BASE_CATS=["Documents & essentiels","Vêtements","Trousse de toilette","Électronique","Selon la météo"];
 
 const today=new Date();
 const plus=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
@@ -530,6 +566,10 @@ function buildList(t,days){
     t.added.filter(x=>x.cat===sec.title).forEach(x=>{
       items.push({name:x.name,qty:(x.name in t.qty)?t.qty[x.name]:x.qty,kid:false,custom:true});
     });
+    (DB.essentials||[]).filter(x=>x.cat===sec.title).forEach(x=>{
+      if(!removed.has(x.name) && !items.some(i=>i.name===x.name))
+        items.push({name:x.name,qty:(x.name in t.qty)?t.qty[x.name]:undefined,kid:false,custom:true});
+    });
     return {title:sec.title,items};
   }).filter(s=>s.items.length);
 }
@@ -550,7 +590,7 @@ const codeOf=t=>(t.destination||"VAL").slice(0,3).toUpperCase().padEnd(3,"X").re
 /* ---------- ROUTAGE ---------- */
 let currentCat=null;
 function showView(name){
-  ["homeView","settingsView","tripView","categoryView"].forEach(v=>document.getElementById(v).classList.toggle("hidden", v!==name));
+  ["homeView","settingsView","tripView","categoryView","essentialsView"].forEach(v=>document.getElementById(v).classList.toggle("hidden", v!==name));
   window.scrollTo(0,0);
 }
 
@@ -842,6 +882,37 @@ function registerSW(){
     try{ navigator.serviceWorker.register("sw.js").catch(()=>{}); }catch(e){}
   }
 }
+
+/* ---------- MES ESSENTIELS (globaux) ---------- */
+if(!Array.isArray(DB.essentials)) DB.essentials=[];
+function openEssentials(){ renderEssentials(); showView("essentialsView"); }
+function renderEssentials(){
+  const sel=document.getElementById("essCat");
+  if(!sel.options.length){ BASE_CATS.forEach(c=>{ const o=document.createElement("option"); o.value=c; o.textContent=c; sel.appendChild(o); }); }
+  const items=DB.essentials||[];
+  document.getElementById("essList").innerHTML = items.length
+    ? items.map((x,i)=>`<div class="essrow">
+        <span class="essrow__name">${esc(x.name)}</span>
+        <span class="essrow__cat">${esc(x.cat)}</span>
+        <button class="essrow__del" data-del="${i}" aria-label="Retirer">×</button>
+      </div>`).join("")
+    : `<p class="essempty">Aucun essentiel pour l'instant. Ajoutez-en un ci-dessous.</p>`;
+}
+document.getElementById("openEssentials").addEventListener("click", openEssentials);
+document.getElementById("backFromEssentials").addEventListener("click", ()=>{ renderHome(); showView("homeView"); });
+document.getElementById("essList").addEventListener("click", e=>{
+  const b=e.target.closest("[data-del]"); if(!b) return;
+  DB.essentials.splice(parseInt(b.dataset.del,10),1); save(); renderEssentials();
+});
+function addEssential(){
+  const n=document.getElementById("essName"), c=document.getElementById("essCat");
+  const name=n.value.trim(); if(!name) return;
+  if(!Array.isArray(DB.essentials)) DB.essentials=[];
+  DB.essentials.push({name, cat:c.value||BASE_CATS[0]});
+  n.value=""; save(); renderEssentials(); n.focus();
+}
+document.getElementById("essAdd").addEventListener("click", addEssential);
+document.getElementById("essName").addEventListener("keydown", e=>{ if(e.key==="Enter") addEssential(); });
 
 /* ---------- init ---------- */
 renderHome();
