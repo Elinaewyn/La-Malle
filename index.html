@@ -540,7 +540,7 @@ function generate(t,days){
     formal&&it("Chaussures de ville",1),
     t.gender==="femme"&&it("Robe",days>4?2:1),
     t.gender==="femme"&&it("Jupe",1),
-    t.gender==="femme"&&it("Soutien-gorge",cap(Math.ceil(days/2)+1,6)),
+    t.gender==="femme"&&it("Soutien-gorge",cap(Math.ceil(days/4)+1,6)),
     t.gender==="femme"&&t.climate==="Froid"&&it("Collants",cap(Math.ceil(days/2),5)),
     t.gender==="homme"&&dressy&&it("Cravate / nœud papillon",1),
   ];
@@ -556,7 +556,7 @@ function generate(t,days){
       t.climate==="Froid"&&kit("Manteau / combinaison chaude enfant"),
       (t.kidGender==="fille"&&band!=="bebe")&&kit("Robe enfant",days>4?2:1),
       (t.kidGender==="fille"&&band!=="bebe")&&kit("Jupe enfant",1),
-      (t.kidGender==="fille"&&band==="ado")&&kit("Soutien-gorge ado",cap(Math.ceil(days/2)+1,6)),
+      (t.kidGender==="fille"&&band==="ado")&&kit("Soutien-gorge ado",cap(Math.ceil(days/4)+1,6)),
       (t.kidGender==="garcon"&&dressy&&band!=="bebe")&&kit("Cravate / nœud papillon enfant",1)
     );
   }
