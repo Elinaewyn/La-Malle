@@ -321,7 +321,13 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24
           <input id="kidAgeInput" type="number" min="0" max="17" class="kidage__input" placeholder="ans" />
           <span class="kidage__band" id="kidAgeBand"></span>
         </div>
+        <span class="field__label" style="margin-top:8px">Genre de l'enfant</span>
+        <div class="chips" id="kidGender"></div>
       </div>
+    </div>
+    <div class="field">
+      <span class="field__label">Genre</span>
+      <div class="chips" id="gender"></div>
     </div>
     <button class="btn btn--primary" id="settingsDone">Voir les catégories →</button>
   </section>
@@ -411,7 +417,7 @@ function newTrip(){
     id:"t"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
     destination:"", depart:iso(today), retour:iso(plus(today,4)),
     climate:"Tempéré", rain:false, tripTypes:["Ville / Culture"],
-    activities:[], abroad:false, kids:false, kidAge:4, transports:[],
+    activities:[], abroad:false, kids:false, kidAge:4, gender:"neutre", kidGender:"neutre", transports:[],
     removed:[], added:[], qty:{}, checked:[]
   };
 }
@@ -421,6 +427,8 @@ function normalizeTrip(t){
   if(!Array.isArray(t.transports)) t.transports = t.plane ? ["Avion"] : [];
   delete t.plane; delete t.camping;
   if(typeof t.kidAge!=="number") t.kidAge = 4;
+  if(typeof t.gender!=="string") t.gender = "neutre";
+  if(typeof t.kidGender!=="string") t.kidGender = "neutre";
   ["activities","removed","added","checked","transports"].forEach(k=>{ if(!Array.isArray(t[k])) t[k]=[]; });
   if(t.activities.includes("Balade")||t.activities.includes("Visite")){
     t.activities=t.activities.filter(x=>x!=="Balade"&&x!=="Visite");
@@ -479,6 +487,7 @@ function generate(t,days){
   const tt=new Set(t.tripTypes);
   const tr=new Set(t.transports);
   const formal=tt.has("Affaires");
+  const dressy=formal||a.has("Soirée habillée");
   const kid=t.kids;
   const band=kidBand(t.kidAge);
   const out=[];
@@ -529,6 +538,11 @@ function generate(t,days){
     it("Chaussures de marche",1),
     formal&&it("Tenue formelle (costume / tailleur)",cap(Math.ceil(days/2),4)),
     formal&&it("Chaussures de ville",1),
+    t.gender==="femme"&&it("Robe",days>4?2:1),
+    t.gender==="femme"&&it("Jupe",1),
+    t.gender==="femme"&&it("Soutien-gorge",cap(Math.ceil(days/2)+1,6)),
+    t.gender==="femme"&&t.climate==="Froid"&&it("Collants",cap(Math.ceil(days/2),5)),
+    t.gender==="homme"&&dressy&&it("Cravate / nœud papillon",1),
   ];
   if(kid){
     const q = band==="bebe"?cap(Math.ceil(days*1.5)+2,20):band==="petit"?cap(days+2,16):cap(days+1,14);
@@ -539,7 +553,11 @@ function generate(t,days){
       kit("Chaussures enfant",1),
       band==="bebe"&&kit("Bodys",cap(days+2,16)),
       band==="bebe"&&kit("Bavoirs",cap(days,8)),
-      t.climate==="Froid"&&kit("Manteau / combinaison chaude enfant")
+      t.climate==="Froid"&&kit("Manteau / combinaison chaude enfant"),
+      (t.kidGender==="fille"&&band!=="bebe")&&kit("Robe enfant",days>4?2:1),
+      (t.kidGender==="fille"&&band!=="bebe")&&kit("Jupe enfant",1),
+      (t.kidGender==="fille"&&band==="ado")&&kit("Soutien-gorge ado",cap(Math.ceil(days/2)+1,6)),
+      (t.kidGender==="garcon"&&dressy&&band!=="bebe")&&kit("Cravate / nœud papillon enfant",1)
     );
   }
   add("Vêtements",cl);
@@ -807,6 +825,12 @@ function renderChips(){
   makeChips("context",
     [{label:"✈ Étranger",value:"abroad"},{label:"Avec enfants",value:"kids"}],
     v=>T[v], v=>{ T[v]=!T[v]; });
+  makeChips("gender",
+    [{label:"Neutre",value:"neutre"},{label:"Femme",value:"femme"},{label:"Homme",value:"homme"}],
+    v=>T.gender===v, v=>{ T.gender=v; });
+  makeChips("kidGender",
+    [{label:"Neutre",value:"neutre"},{label:"Fille",value:"fille"},{label:"Garçon",value:"garcon"}],
+    v=>T.kidGender===v, v=>{ T.kidGender=v; });
 }
 function updateKidAge(syncValue){
   const wrap=document.getElementById("kidAgeWrap");
