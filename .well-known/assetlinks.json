@@ -1,8 +1,0 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "io.github.elinaewyn.twa",
-        "sha256_cert_fingerprints": ["B1:DA:45:53:E7:C0:5F:7C:67:FB:51:A0:81:AF:83:74:55:43:F4:87:3B:87:7B:04:EC:8D:7F:D2:30:FD:74:C9"]
-      }
-    }]
