@@ -736,7 +736,7 @@ function generate(t,days){
       ...perAdult(A=>[A("Serviette de plage"),A("Lunettes de soleil")]),
       t.climate!=="Chaud"&&it("Crème solaire"),
     ];
-    if(kid) items.push((band==="petit"||band==="enfant")&&kit("Brassards / bouée"));
+    if(kid) items.push(kit("Serviette de plage enfant"), (band==="petit"||band==="enfant")&&kit("Brassards / bouée"));
     add("Plage & baignade",items);
   }
   if(a.has("Balade / Visite")) add("Balades & visites",[
