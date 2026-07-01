@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>La Malle — Listes de bagages</title>
+<meta name="theme-color" content="#0a3a36" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="La Malle" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="description" content="Générez et suivez vos listes de bagages, adaptées à la durée, la météo, les activités et l'âge des enfants." />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png" />
+<link rel="apple-touch-icon" href="apple-touch-icon-180.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap');
+
+:root{
+  --teal:#0d4f4a; --teal-deep:#0a3a36; --coral:#ee6c4d; --ink:#16302c;
+  --muted:#6c807b; --paper:#e9e4d8; --card:#fbfaf5; --line:#d8d2c4; --mid:#0f5a54;
+  --display:'Bricolage Grotesque','Inter',system-ui,sans-serif;
+  --body:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;}
+body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24px 16px calc(48px + env(safe-area-inset-bottom));min-height:100vh;-webkit-font-smoothing:antialiased;}
+.hidden{display:none!important;}
+
+.masthead{max-width:1040px;margin:0 auto 20px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;}
+.masthead__mark{font-family:var(--display);font-weight:800;font-size:clamp(26px,6vw,42px);letter-spacing:-.02em;color:var(--teal-deep);line-height:1;}
+.masthead__sub{margin:5px 0 0;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+.masthead__install{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);text-align:right;max-width:160px;line-height:1.5;}
+
+.home{max-width:1040px;margin:0 auto;}
+.home__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+.tcard{position:relative;background:var(--card);border:1.5px solid var(--ink);border-radius:14px;box-shadow:5px 5px 0 var(--teal-deep);overflow:hidden;cursor:pointer;transition:transform .1s,box-shadow .1s;text-align:left;width:100%;font-family:var(--body);}
+.tcard:hover{transform:translate(-1px,-1px);box-shadow:6px 6px 0 var(--teal-deep);}
+.tcard:active{transform:translate(2px,2px);box-shadow:3px 3px 0 var(--teal-deep);}
+.tcard__strip{background:var(--teal-deep);color:#f3efe4;padding:10px 16px;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:.08em;}
+.tcard__strip .arr{color:var(--coral);}
+.homeglyph{width:15px;height:15px;display:inline-block;vertical-align:-2px;}
+.tcard__body{padding:16px;display:flex;align-items:center;justify-content:space-between;gap:14px;}
+.tcard__dest{font-family:var(--display);font-weight:700;font-size:21px;color:var(--ink);line-height:1.15;margin-bottom:4px;}
+.tcard__when{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em;}
+.tcard__days{font-family:var(--mono);font-size:11px;color:var(--teal);margin-top:6px;}
+.tcard__del{position:absolute;top:9px;right:9px;width:26px;height:26px;border:none;background:rgba(255,255,255,.14);color:#f3efe4;border-radius:7px;font-size:15px;cursor:pointer;line-height:1;z-index:2;}
+.tcard__del:hover{background:var(--coral);}
+.tcard__confirm{position:absolute;inset:0;background:rgba(10,58,54,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:3;color:#f3efe4;padding:16px;text-align:center;}
+.tcard__confirm p{margin:0;font-family:var(--body);font-size:14px;}
+.tcard__confirm-row{display:flex;gap:10px;}
+.tcard__confirm button{font-family:var(--mono);font-size:12px;border:none;border-radius:8px;padding:9px 16px;cursor:pointer;}
+.tcard__confirm .yes{background:var(--coral);color:#fff;}
+.tcard__confirm .no{background:#fff;color:var(--teal-deep);}
+
+.ring{width:58px;height:58px;flex:none;transform:rotate(-90deg);}
+.ring__bg{fill:none;stroke:var(--line);stroke-width:5;}
+.ring__fg{fill:none;stroke:var(--coral);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .4s ease;}
+.ring-wrap{position:relative;width:58px;height:58px;flex:none;}
+.ring-wrap span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:15px;color:var(--teal-deep);}
+
+.tcard--new{border-style:dashed;box-shadow:none;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:120px;color:var(--teal-deep);}
+.tcard--new:hover{box-shadow:none;background:#fbfaf555;border-color:var(--coral);color:var(--coral);transform:none;}
+.tcard--new .plus{font-family:var(--display);font-weight:800;font-size:30px;line-height:1;margin-bottom:4px;}
+.tcard--new .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;}
+.home__empty{font-family:var(--body);color:var(--muted);font-size:14px;margin:6px 2px 14px;}
+
+.backbar{max-width:1040px;margin:0 auto 16px;}
+.back{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);background:none;border:none;cursor:pointer;padding:6px 0;}
+.back:hover{color:var(--coral);}
+
+.grid{max-width:1040px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+@media(max-width:820px){.grid{grid-template-columns:1fr;}}
+.panel{background:var(--card);border:1.5px solid var(--ink);border-radius:14px;box-shadow:5px 5px 0 var(--teal-deep);}
+
+.form{padding:22px;display:flex;flex-direction:column;gap:20px;}
+.field{display:flex;flex-direction:column;gap:9px;}
+.field__label{font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);}
+.field__input{font-family:var(--display);font-weight:600;font-size:19px;color:var(--ink);background:transparent;border:none;border-bottom:2px solid var(--line);padding:6px 2px;outline:none;transition:border-color .15s;width:100%;}
+.field__input:focus{border-color:var(--coral);}
+.field__input::placeholder{color:#b7b1a3;}
+.dates{display:flex;gap:12px;}
+.dates>label{flex:1;display:flex;flex-direction:column;gap:6px;}
+.dates small{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.date__input{font-family:var(--body);font-size:15px;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:10px;outline:none;width:100%;}
+.date__input:focus{border-color:var(--coral);}
+.dates__sum{font-family:var(--mono);font-size:12px;color:var(--teal);margin-top:4px;}
+.dates__warn{color:var(--coral);}
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{font-family:var(--body);font-size:13.5px;font-weight:500;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:8px 14px;cursor:pointer;transition:background .15s,border-color .15s,color .15s,transform .08s;}
+.chip:hover{border-color:var(--teal);}
+.chip:active{transform:translateY(1px);}
+.chip--on{background:var(--teal);border-color:var(--teal);color:#fbfaf5;}
+
+.kidage{display:flex;flex-direction:column;gap:8px;margin-top:6px;padding-top:14px;border-top:1px dashed var(--line);}
+.kidage__row{display:flex;align-items:center;gap:12px;}
+.kidage__input{width:84px;font-family:var(--body);font-size:15px;border:1.5px solid var(--line);border-radius:10px;padding:9px;outline:none;}
+.kidage__input:focus{border-color:var(--coral);}
+.kidage__band{font-family:var(--mono);font-size:11px;color:var(--teal);letter-spacing:.04em;}
+
+.ticket{padding:0;overflow:hidden;position:sticky;top:16px;}
+@media(max-width:820px){.ticket{position:static;}}
+.ticket__head{background:var(--teal-deep);color:#f3efe4;padding:20px 22px 18px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.ticket__route{font-family:var(--mono);font-weight:700;font-size:21px;letter-spacing:.07em;}
+.ticket__plane{color:var(--coral);}
+.ticket__dest{font-family:var(--display);font-weight:600;font-size:16px;margin-top:4px;color:rgba(243,239,228,.82);}
+.ticket__when{font-family:var(--mono);font-size:11px;color:rgba(243,239,228,.55);margin-top:6px;letter-spacing:.04em;}
+.ticket__days{text-align:right;line-height:1;flex:none;}
+.ticket__days-num{font-family:var(--display);font-weight:800;font-size:36px;color:var(--coral);display:block;}
+.ticket__days-unit{font-family:var(--mono);font-size:11px;color:rgba(243,239,228,.55);}
+.ticket__progress{position:relative;background:var(--mid);height:30px;display:flex;align-items:center;overflow:hidden;}
+.ticket__progress-bar{position:absolute;left:0;top:0;bottom:0;background:var(--coral);transition:width .3s ease;}
+.ticket__progress-label{position:relative;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:#fff;padding-left:22px;mix-blend-mode:difference;}
+.perf{height:18px;background:var(--card);position:relative;}
+.perf::before{content:"";position:absolute;top:50%;left:14px;right:14px;border-top:2px dashed var(--line);transform:translateY(-50%);}
+.ticket__body{padding:2px 22px 6px;}
+.cat{padding:13px 0;border-bottom:1px solid var(--line);}
+.cat:last-child{border-bottom:none;}
+.cat__head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.cat__title{font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--teal);}
+.cat__add{font-family:var(--mono);font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:6px;}
+.cat__add:hover{color:var(--coral);background:#fff;}
+.cat__list{list-style:none;margin:0;padding:0;}
+.line{display:flex;align-items:center;gap:10px;padding:6px 0;}
+.line__check{display:flex;align-items:center;gap:10px;flex:1;min-width:0;background:none;border:none;padding:0;cursor:pointer;text-align:left;font-family:var(--body);}
+.line__box{flex:none;width:20px;height:20px;border:1.5px solid var(--ink);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;background:#fff;transition:background .15s,border-color .15s;}
+.line--on .line__box{background:var(--teal);border-color:var(--teal);}
+.line__name{flex:1;min-width:0;font-size:15px;color:var(--ink);line-height:1.3;overflow-wrap:anywhere;}
+.line__kid{display:inline-flex;align-items:center;justify-content:center;flex:none;color:var(--coral);}
+.kidicon{width:18px;height:18px;display:block;}
+.line--on .line__name{color:var(--muted);text-decoration:line-through;}
+.line--on .line__kid{color:var(--muted);}
+.line__own{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:999px;font-family:var(--body);font-size:11px;font-weight:700;color:#fff;line-height:1;}
+.line__own--1{background:var(--teal);}
+.line__own--2{background:var(--coral);}
+.line--on .line__own{opacity:.45;}
+.qty{display:flex;align-items:center;flex:none;border:1.5px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;}
+.qty button{width:26px;height:26px;border:none;background:#fff;color:var(--teal-deep);font-size:15px;cursor:pointer;font-family:var(--display);line-height:1;}
+.qty button:hover{background:#f0ece0;}
+.qty span{min-width:26px;text-align:center;font-family:var(--mono);font-weight:700;font-size:13px;color:var(--coral);}
+.line__del{flex:none;width:26px;height:26px;border:none;background:none;color:#c2bcae;font-size:17px;cursor:pointer;border-radius:6px;line-height:1;}
+.line__del:hover{color:var(--coral);background:#fff;}
+.addrow{display:flex;gap:6px;margin:8px 0 2px;align-items:center;}
+.addrow input[type=text]{flex:1;min-width:0;font-family:var(--body);font-size:14px;border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;outline:none;}
+.addrow input[type=text]:focus{border-color:var(--coral);}
+.addrow input[type=number]{width:54px;font-family:var(--mono);font-size:13px;border:1.5px solid var(--line);border-radius:8px;padding:8px 6px;outline:none;text-align:center;}
+.addrow .ok{font-family:var(--mono);font-size:12px;background:var(--teal);color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;}
+.addrow .cancel{font-family:var(--mono);font-size:12px;background:none;color:var(--muted);border:none;cursor:pointer;padding:8px 6px;}
+.tear{position:relative;height:26px;background:var(--card);}
+.tear__line{position:absolute;top:50%;left:20px;right:20px;border-top:2px dashed var(--line);transform:translateY(-50%);}
+.tear::before,.tear::after{content:"";position:absolute;top:50%;width:18px;height:18px;border-radius:50%;background:var(--paper);border:1.5px solid var(--ink);box-sizing:border-box;transform:translateY(-50%);}
+.tear::before{left:-10px;}
+.tear::after{right:-10px;}
+.actions{display:flex;gap:10px;padding:14px 22px 22px;}
+.btn{flex:1;padding:13px;font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;border:none;border-radius:10px;cursor:pointer;transition:filter .15s,transform .08s;}
+.btn:active{transform:translateY(1px);}
+.btn--primary{color:#fbfaf5;background:var(--coral);}
+.btn--primary:hover{filter:brightness(1.06);}
+.btn--ghost{flex:none;color:var(--teal-deep);background:#fff;border:1.5px solid var(--line);}
+.btn--ghost:hover{border-color:var(--teal);}
+.btn--warn{background:var(--coral);border-color:var(--coral);color:#fff;}
+.btn--warn:hover{background:var(--coral);}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;}}
+
+/* --- navigation interne (hub / catégories / paramètres) --- */
+.backbar{max-width:620px;}
+#tripView .panel,#categoryView .panel,#settingsView .panel{max-width:620px;margin-left:auto;margin-right:auto;}
+.hubsettings{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--mid);color:#f3efe4;border:none;padding:13px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .15s;}
+.hubsettings:hover{filter:brightness(1.1);}
+.hubcats{padding:4px 16px;}
+.catrow{display:flex;align-items:center;gap:14px;width:100%;background:none;border:none;border-bottom:1px solid var(--line);padding:15px 6px;cursor:pointer;text-align:left;font-family:var(--body);transition:background .12s;}
+.catrow:last-child{border-bottom:none;}
+.catrow:hover{background:#fff;}
+.catrow:active{transform:translateY(1px);}
+.catrow__main{flex:1;min-width:0;}
+.catrow__name{font-family:var(--display);font-weight:600;font-size:16px;color:var(--ink);margin-bottom:8px;}
+.catrow__bar{height:6px;background:var(--line);border-radius:99px;overflow:hidden;}
+.catrow__bar span{display:block;height:100%;background:var(--coral);border-radius:99px;transition:width .3s;}
+.catrow__meta{font-family:var(--mono);font-size:12px;color:var(--muted);flex:none;min-width:44px;text-align:right;}
+.catrow__chev{font-family:var(--display);font-weight:800;font-size:20px;color:var(--teal);flex:none;}
+.catrow--done .catrow__bar span{background:var(--teal);}
+.ticket__dest--big{font-size:22px;color:#f3efe4;}
+#settingsView .btn--primary{width:100%;margin-top:6px;}
+.emptynote{font-family:var(--body);color:var(--muted);font-size:14px;padding:14px 6px;}
+.catbackbar{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.catpager{display:flex;align-items:center;gap:8px;}
+.catpager__btn{width:34px;height:34px;border:1.5px solid var(--line);background:#fff;border-radius:9px;font-family:var(--display);font-weight:800;font-size:18px;color:var(--teal-deep);cursor:pointer;line-height:1;transition:background .12s,border-color .12s;}
+.catpager__btn:hover{border-color:var(--teal);}
+.catpager__btn--off{opacity:.35;cursor:default;}
+.catpager__pos{font-family:var(--mono);font-size:12px;color:var(--muted);min-width:46px;text-align:center;}
+.cattools{display:flex;justify-content:flex-end;padding:10px 22px 0;}
+.toggle{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--teal);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:7px 13px;cursor:pointer;transition:background .12s,border-color .12s,color .12s;}
+.toggle:hover{border-color:var(--teal);}
+.toggle--on{background:var(--teal);border-color:var(--teal);color:#fbfaf5;}
+@keyframes catin{from{opacity:0;transform:translateX(var(--catdx,0));}to{opacity:1;transform:none;}}
+.catanim{animation:catin .22s ease;}
+.allchecked{font-family:var(--display);font-weight:600;color:var(--teal);font-size:16px;padding:18px 6px;text-align:center;}
+.homebar{display:flex;justify-content:flex-end;max-width:1040px;margin:0 auto 14px;}
+.linkbtn{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--teal-deep);background:#fff;border:1.5px solid var(--ink);border-radius:999px;padding:9px 16px;cursor:pointer;box-shadow:3px 3px 0 var(--teal-deep);transition:transform .1s,box-shadow .1s;}
+.linkbtn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--teal-deep);}
+.linkbtn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--teal-deep);}
+.essintro{font-family:var(--body);font-size:13px;color:var(--muted);line-height:1.5;margin:2px 0 0;}
+.essrow{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--line);}
+.essrow:last-child{border-bottom:none;}
+.essrow__name{flex:1;min-width:0;font-size:15px;color:var(--ink);overflow-wrap:anywhere;}
+.essrow__cat{font-family:var(--mono);font-size:10px;color:var(--teal);border:1px solid var(--line);border-radius:6px;padding:2px 7px;flex:none;}
+.essrow__del{flex:none;width:28px;height:28px;border:none;background:none;color:#c2bcae;font-size:18px;cursor:pointer;border-radius:6px;line-height:1;}
+.essrow__del:hover{color:var(--coral);background:#fff;}
+.essadd{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px;}
+.essadd__name{flex:1;min-width:150px;font-family:var(--body);font-size:14px;border:1.5px solid var(--line);border-radius:10px;padding:11px;outline:none;}
+.essadd__name:focus{border-color:var(--coral);}
+.essadd__cat{font-family:var(--body);font-size:14px;border:1.5px solid var(--line);border-radius:10px;padding:11px;outline:none;background:#fff;color:var(--ink);}
+#essAdd{flex:none;}
+.essempty{font-family:var(--body);color:var(--muted);font-size:14px;padding:10px 4px 4px;}
+.hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:30px 20px 26px;max-width:520px;margin:6px auto 0;}
+.hero__svg{width:128px;height:auto;margin-bottom:20px;}
+.hero__title{font-family:var(--display);font-weight:800;font-size:24px;color:var(--ink);margin:0 0 10px;line-height:1.15;}
+.hero__text{font-family:var(--body);font-size:15px;color:var(--muted);line-height:1.55;margin:0 0 24px;max-width:380px;}
+.hero__btn{font-family:var(--mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#fbfaf5;background:var(--coral);border:none;border-radius:12px;padding:15px 26px;cursor:pointer;box-shadow:4px 4px 0 var(--teal-deep);transition:transform .1s,box-shadow .1s;}
+.hero__btn:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--teal-deep);}
+.hero__btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--teal-deep);}
+.themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px;margin-top:8px;}
+.swatch{display:flex;flex-direction:column;gap:11px;padding:13px;background:#fff;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;text-align:left;transition:border-color .12s,transform .08s;}
+.swatch:hover{border-color:var(--teal);}
+.swatch:active{transform:translateY(1px);}
+.swatch--on{border-color:var(--coral);box-shadow:0 0 0 1.5px var(--coral) inset;}
+.swatch__chips{display:flex;gap:5px;}
+.swatch__chips span{width:22px;height:22px;border-radius:6px;border:1px solid rgba(0,0,0,.08);}
+.swatch__name{font-family:var(--display);font-weight:600;font-size:15px;color:var(--ink);}
+.swatch--on .swatch__name::after{content:" ✓";color:var(--coral);}
+</style>
+</head>
+<body>
+
+<!-- ============ ACCUEIL ============ -->
+<div id="homeView">
+  <header class="masthead">
+    <div>
+      <div class="masthead__mark">✦ La Malle</div>
+      <p class="masthead__sub">Mes voyages</p>
+    </div>
+    <p class="masthead__install">Astuce&nbsp;: « Ajouter à l'écran d'accueil » pour l'installer</p>
+  </header>
+  <div class="homebar"><button class="linkbtn" id="openEssentials">★ Mes essentiels</button><button class="linkbtn" id="openPrefs">⚙ Réglages</button></div>
+  <div class="home">
+    <div id="homeEmpty" class="hero hidden">
+      <svg class="hero__svg" viewBox="0 0 120 100" role="img" aria-label="malle">
+        <path d="M52 16 q0 -8 8 -8 q8 0 8 8" fill="none" stroke="var(--coral)" stroke-width="4" stroke-linecap="round"/>
+        <rect x="16" y="22" width="88" height="64" rx="9" fill="var(--card)" stroke="var(--ink)" stroke-width="2.5"/>
+        <line x1="16" y1="44" x2="104" y2="44" stroke="var(--ink)" stroke-width="2.5"/>
+        <rect x="36" y="22" width="11" height="64" fill="var(--coral)"/>
+        <rect x="73" y="22" width="11" height="64" fill="var(--coral)"/>
+        <rect x="34.5" y="38" width="14" height="12" rx="2.5" fill="var(--teal-deep)"/>
+        <rect x="71.5" y="38" width="14" height="12" rx="2.5" fill="var(--teal-deep)"/>
+        <rect x="39" y="41.5" width="5" height="5" fill="var(--card)"/>
+        <rect x="76" y="41.5" width="5" height="5" fill="var(--card)"/>
+        <rect x="22" y="86" width="9" height="6" rx="2" fill="var(--teal-deep)"/>
+        <rect x="89" y="86" width="9" height="6" rx="2" fill="var(--teal-deep)"/>
+      </svg>
+      <h2 class="hero__title">Votre première malle vous attend</h2>
+      <p class="hero__text">Créez un voyage et la liste de bagages se compose toute seule, selon la durée, la météo, les activités et qui vous accompagne.</p>
+      <button class="hero__btn" id="heroNew">+ Créer un voyage</button>
+    </div>
+    <div class="home__grid" id="homeGrid"></div>
+  </div>
+</div>
+
+<!-- ============ RÉGLAGES ============ -->
+<div id="prefsView" class="hidden">
+  <div class="backbar"><button class="back" id="backFromPrefs">← Mes voyages</button></div>
+  <section class="panel form">
+    <div class="field">
+      <span class="field__label">Thème</span>
+      <p class="essintro">Choisissez l'ambiance de couleurs de l'application. Le changement s'applique immédiatement et partout.</p>
+    </div>
+    <div class="themes" id="themeGrid"></div>
+  </section>
+</div>
+
+<!-- ============ MES ESSENTIELS ============ -->
+<div id="essentialsView" class="hidden">
+  <div class="backbar"><button class="back" id="backFromEssentials">← Mes voyages</button></div>
+  <section class="panel form">
+    <div class="field">
+      <span class="field__label">Mes essentiels</span>
+      <p class="essintro">Ces articles sont ajoutés automatiquement à chaque voyage, dans la catégorie choisie. Vous pouvez toujours les retirer ou ajuster leur quantité voyage par voyage.</p>
+    </div>
+    <div id="essList"></div>
+    <div class="essadd">
+      <input type="text" id="essName" class="essadd__name" placeholder="Nouvel essentiel…" />
+      <select id="essCat" class="essadd__cat"></select>
+      <button class="btn btn--primary" id="essAdd">Ajouter</button>
+    </div>
+  </section>
+</div>
+
+<!-- ============ PARAMÈTRES ============ -->
+<div id="settingsView" class="hidden">
+  <div class="backbar"><button class="back" id="backFromSettings">← Retour au voyage</button></div>
+  <section class="panel form">
+    <label class="field">
+      <span class="field__label">Destination</span>
+      <input id="destination" class="field__input" placeholder="ex. Lisbonne" />
+    </label>
+    <div class="field">
+      <span class="field__label">Dates du séjour</span>
+      <div class="dates">
+        <label><small>Départ</small><input id="depart" type="date" class="date__input" /></label>
+        <label><small>Retour</small><input id="retour" type="date" class="date__input" /></label>
+      </div>
+      <div id="datesSum" class="dates__sum"></div>
+    </div>
+    <div class="field"><span class="field__label">Météo attendue</span><div class="chips" id="climate"></div></div>
+    <div class="field"><span class="field__label">Types de voyage <span style="text-transform:none;letter-spacing:0;color:#b7b1a3">(plusieurs possibles)</span></span><div class="chips" id="tripType"></div></div>
+    <div class="field"><span class="field__label">Activités prévues</span><div class="chips" id="activities"></div></div>
+    <div class="field"><span class="field__label">Moyen de transport</span><div class="chips" id="transport"></div></div>
+    <div class="field">
+      <span class="field__label">Contexte</span>
+      <div class="chips" id="context"></div>
+      <div id="kidAgeWrap" class="kidage hidden">
+        <span class="field__label">Âge de l'enfant</span>
+        <div class="kidage__row">
+          <input id="kidAgeInput" type="number" min="0" max="17" class="kidage__input" placeholder="ans" />
+          <span class="kidage__band" id="kidAgeBand"></span>
+        </div>
+        <span class="field__label" style="margin-top:8px">Genre de l'enfant</span>
+        <div class="chips" id="kidGender"></div>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field__label">Voyageur principal</span>
+      <input id="name1" type="text" maxlength="20" class="date__input" placeholder="Prénom (optionnel)" style="margin-bottom:8px" />
+      <div class="chips" id="gender"></div>
+      <div id="partnerWrap" class="kidage hidden">
+        <span class="field__label">Prénom du 2ᵉ adulte</span>
+        <input id="name2" type="text" maxlength="20" class="date__input" placeholder="Prénom (optionnel)" />
+        <span class="field__label" style="margin-top:8px">Genre du 2ᵉ adulte</span>
+        <div class="chips" id="partnerGender"></div>
+      </div>
+    </div>
+    <button class="btn btn--primary" id="settingsDone">Voir les catégories →</button>
+  </section>
+</div>
+
+<!-- ============ VOYAGE (hub) ============ -->
+<div id="tripView" class="hidden">
+  <div class="backbar"><button class="back" id="backHome">← Mes voyages</button></div>
+  <section class="panel ticket">
+    <div class="ticket__head">
+      <div>
+        <div class="ticket__route" id="route"></div>
+        <div class="ticket__dest" id="ticketDest">Votre voyage</div>
+        <div class="ticket__when" id="ticketWhen"></div>
+      </div>
+      <div class="ticket__days">
+        <span class="ticket__days-num" id="daysNum">1</span>
+        <span class="ticket__days-unit" id="daysUnit">jour</span>
+      </div>
+    </div>
+    <div class="ticket__progress">
+      <div class="ticket__progress-bar" id="progressBar"></div>
+      <span class="ticket__progress-label" id="progressLabel"></span>
+    </div>
+    <button class="hubsettings" id="openSettingsBtn">⚙ Paramètres du voyage</button>
+    <div class="perf"></div>
+    <div class="hubcats" id="hubCats"></div>
+    <div class="tear"><span class="tear__line"></span></div>
+    <div class="actions">
+      <button class="btn btn--primary" id="copyBtn">Copier la liste</button>
+      <button class="btn btn--ghost" id="resetBtn" title="Tout décocher">↺</button>
+    </div>
+  </section>
+</div>
+
+<!-- ============ CATÉGORIE ============ -->
+<div id="categoryView" class="hidden">
+  <div class="backbar catbackbar">
+    <button class="back" id="backFromCategory">← Catégories</button>
+    <div class="catpager">
+      <button class="catpager__btn" id="catPrev" aria-label="Catégorie précédente">‹</button>
+      <span class="catpager__pos" id="catPos">1 / 1</span>
+      <button class="catpager__btn" id="catNext" aria-label="Catégorie suivante">›</button>
+    </div>
+  </div>
+  <section class="panel ticket">
+    <div class="ticket__head">
+      <div><div class="ticket__dest ticket__dest--big" id="catTitle">Catégorie</div></div>
+      <div class="ticket__days"><span class="ticket__days-num" id="catPct">0%</span></div>
+    </div>
+    <div class="ticket__progress">
+      <div class="ticket__progress-bar" id="catBar"></div>
+      <span class="ticket__progress-label" id="catLabel"></span>
+    </div>
+    <div class="perf"></div>
+    <div class="ticket__body" id="categoryBody"></div>
+    <div class="tear"><span class="tear__line"></span></div>
+  </section>
+</div>
+
+<script>
+"use strict";
+
+/* ---------- stockage local sûr ---------- */
+const store = (() => {
+  let ok=false, mem={};
+  try{ const k="__t"; localStorage.setItem(k,"1"); localStorage.removeItem(k); ok=true; }catch(e){ ok=false; }
+  return {
+    get(k){ try{ return ok?localStorage.getItem(k):(k in mem?mem[k]:null);}catch(e){return k in mem?mem[k]:null;} },
+    set(k,v){ try{ ok?localStorage.setItem(k,v):(mem[k]=v);}catch(e){mem[k]=v;} }
+  };
+})();
+
+/* ---------- options ---------- */
+const CLIMATES=["Chaud","Tempéré","Froid"];
+const TRIPS=["Plage / Détente","Ville / Culture","Nature / Randonnée","Affaires","Ski / Montagne"];
+const ACTIVITIES=["Baignade","Balade / Visite","Sport / Fitness","Restaurants / Sorties","Réunions pro","Plongée / Snorkeling","Vélo","Soirée habillée"];
+const TRANSPORTS=["Avion","Voiture","Train","Bateau","Bus"];
+const BASE_CATS=["Documents & essentiels","Vêtements","Trousse de toilette","Électronique","Selon la météo"];
+
+const today=new Date();
+const plus=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
+const iso=d=>d.toISOString().slice(0,10);
+
+function newTrip(){
+  return {
+    id:"t"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    destination:"", depart:iso(today), retour:iso(plus(today,4)),
+    climate:"Tempéré", rain:false, tripTypes:["Ville / Culture"],
+    activities:[], abroad:false, kids:false, kidAge:4, gender:"neutre", kidGender:"neutre", transports:[],
+    partner:false, partnerGender:"neutre", name1:"", name2:"",
+    removed:[], added:[], qty:{}, checked:[]
+  };
+}
+function normalizeTrip(t){
+  if(!Array.isArray(t.tripTypes)) t.tripTypes = t.tripType ? [t.tripType] : ["Ville / Culture"];
+  delete t.tripType;
+  if(!Array.isArray(t.transports)) t.transports = t.plane ? ["Avion"] : [];
+  delete t.plane; delete t.camping;
+  if(typeof t.kidAge!=="number") t.kidAge = 4;
+  if(typeof t.gender!=="string") t.gender = "neutre";
+  if(typeof t.kidGender!=="string") t.kidGender = "neutre";
+  if(typeof t.partner!=="boolean") t.partner = false;
+  if(typeof t.partnerGender!=="string") t.partnerGender = "neutre";
+  if(typeof t.name1!=="string") t.name1 = "";
+  if(typeof t.name2!=="string") t.name2 = "";
+  ["activities","removed","added","checked","transports"].forEach(k=>{ if(!Array.isArray(t[k])) t[k]=[]; });
+  if(t.activities.includes("Balade")||t.activities.includes("Visite")){
+    t.activities=t.activities.filter(x=>x!=="Balade"&&x!=="Visite");
+    if(!t.activities.includes("Balade / Visite")) t.activities.push("Balade / Visite");
+  }
+  t.added.forEach(x=>{ if(x.cat==="Balade"||x.cat==="Visites & musées") x.cat="Balades & visites"; });
+  if(!t.qty || typeof t.qty!=="object") t.qty={};
+  return t;
+}
+
+/* ---------- base de données ---------- */
+let DB = loadDB();
+let T = null;
+let openAddCat = null;
+let confirmDelete = null;
+
+function loadDB(){
+  try{
+    const raw=store.get("envalise_db");
+    if(raw){ const d=JSON.parse(raw); if(d&&Array.isArray(d.trips)){ d.trips.forEach(normalizeTrip); return d; } }
+  }catch(e){}
+  try{
+    const old=store.get("envalise");
+    if(old){ const t=normalizeTrip(Object.assign(newTrip(), JSON.parse(old))); return {trips:[t]}; }
+  }catch(e){}
+  return {trips:[]};
+}
+function save(){ try{ store.set("envalise_db", JSON.stringify(DB)); }catch(e){} }
+
+/* ---------- durée ---------- */
+function computeDays(t){
+  if(!t.depart||!t.retour) return {days:1,valid:false};
+  const a=new Date(t.depart), b=new Date(t.retour);
+  const diff=Math.round((b-a)/86400000);
+  if(isNaN(diff)) return {days:1,valid:false};
+  if(diff<0) return {days:1,valid:false,reversed:true};
+  return {days:diff+1,valid:true};
+}
+
+/* ---------- âge enfant ---------- */
+function kidBand(age){
+  if(age==null||isNaN(age)) age=4;
+  if(age<=2) return "bebe";
+  if(age<=5) return "petit";
+  if(age<=11) return "enfant";
+  return "ado";
+}
+function bandLabel(age){
+  return {bebe:"Bébé (0–2 ans)",petit:"Petit (3–5 ans)",enfant:"Enfant (6–11 ans)",ado:"Ado (12–17 ans)"}[kidBand(age)];
+}
+
+/* ---------- génération ---------- */
+const cap=(n,m)=>Math.min(n,m);
+function generate(t,days){
+  const a=new Set(t.activities);
+  const tt=new Set(t.tripTypes);
+  const tr=new Set(t.transports);
+  const formal=tt.has("Affaires");
+  const dressy=formal||a.has("Soirée habillée");
+  const kid=t.kids;
+  const band=kidBand(t.kidAge);
+  const out=[];
+  const add=(title,items)=>out.push({title,items:items.filter(Boolean)});
+  const it=(name,qty,child)=>{ const o=qty?{name,qty}:{name}; if(child)o.kid=true; return o; };
+  const kit=(name,qty)=>it(name,qty,true); // article enfant
+
+  // ---- Déclinaison « 2 adultes » : étiquetage, badges courts, fabrique réutilisable
+  const label1 = t.partner ? ((t.name1||"").trim() || "Adulte 1") : "";
+  const label2 = t.partner ? ((t.name2||"").trim() || "Adulte 2") : "";
+  const shortTags = (u,v)=>{
+    const up=s=>s.toUpperCase();
+    const i1=up(u[0]||"?"), i2=up(v[0]||"?");
+    if(i1!==i2) return [i1,i2];
+    const two=s=>up(s[0]||"")+(s[1]?s[1].toLowerCase():"");
+    const t1=two(u), t2=two(v);
+    if(t1!==t2) return [t1,t2];
+    return [i1+"1", i2+"2"];
+  };
+  const [tag1,tag2] = t.partner ? shortTags(label1,label2) : ["",""];
+  const mkAdult = (label,n,tag)=>(name,qty)=>{
+    const o=it(name+(label?" ("+label+")":""),qty);
+    if(label){ o.owner=label; o.ownerN=n; o.ownerTag=tag; }
+    return o;
+  };
+  const A1 = mkAdult(label1,1,tag1);   // 1er adulte (ou solo, sans badge)
+  const A2 = mkAdult(label2,2,tag2);   // 2e adulte
+  // décline une liste d'articles personnels pour chaque adulte présent
+  const perAdult = make => {
+    let arr = make(A1).filter(Boolean);
+    if(t.partner) arr = arr.concat(make(A2).filter(Boolean));
+    return arr;
+  };
+
+  // ---- Documents & essentiels
+  const docs=[
+    ...perAdult(A=>[A(t.abroad?"Passeport":"Pièce d'identité"), A("Portefeuille (cartes, espèces)")]),
+    t.abroad&&it("Copie des documents (papier + cloud)"),
+    t.abroad&&it("Assurance voyage"),
+    t.abroad&&it("Devises locales"),
+    it("Clés (maison, voiture)"),
+  ];
+  if(kid){
+    docs.push(
+      t.abroad&&kit("Passeport / pièce d'identité enfant"),
+      kit("Carnet de santé / vaccins enfant"),
+      (band==="bebe"||band==="petit")&&kit("Doudou"),
+      band==="bebe"&&kit("Sac à langer"),
+      band==="bebe"&&kit("Poussette / porte-bébé"),
+      band==="bebe"&&kit("Biberons + lait / eau"),
+      band==="bebe"&&kit("Repas / petits pots", cap(days+1,12))
+    );
+  }
+  add("Documents & essentiels",docs);
+
+  // ---- Transport
+  const trans=[];
+  if(tr.has("Avion")) trans.push(it("Billets / carte d'embarquement"),it("Liquides < 100 ml (sac transparent)"),it("Oreiller de voyage"),it("Bouchons / masque de sommeil"));
+  if(tr.has("Voiture")) trans.push(it("Permis de conduire"),it("Chargeur voiture (allume-cigare)"),it("GPS / itinéraire hors-ligne"),it("En-cas pour la route"));
+  if(tr.has("Train")) trans.push(it("Billets de train"),it("En-cas"),it("Livre / divertissement"));
+  if(tr.has("Bateau")) trans.push(it("Billets / réservation"),it("Anti-mal de mer"),it("Coupe-vent"));
+  if(tr.has("Bus")) trans.push(it("Billets"),it("Oreiller de nuque"),it("En-cas"));
+  const _seen=new Set();
+  add("Transport", trans.filter(x=>x && !_seen.has(x.name) && _seen.add(x.name)));
+
+  // ---- Vêtements (centralise TOUT ce qui se porte : base + météo + activités)
+  const adultCloth = (g, A) => [
+    // — base —
+    A("Sous-vêtements",cap(days+1,14)),
+    A("Chaussettes",cap(days+1,14)),
+    A("T-shirts / hauts",cap(Math.ceil(days*0.75)+1,12)),
+    A(t.climate==="Chaud"?"Shorts":"Pantalons",cap(Math.ceil(days/3)+1,5)),
+    A("Pull / veste légère",t.climate==="Froid"?3:days>5?2:1),
+    A("Pyjama",days>7?2:1),
+    A("Baskets / chaussures de marche",1),
+    formal&&A("Tenue formelle (costume / tailleur)",cap(Math.ceil(days/2),4)),
+    (formal||a.has("Restaurants / Sorties")||a.has("Soirée habillée"))&&A("Chaussures de ville",1),
+    g==="femme"&&A("Robe",days>4?2:1),
+    g==="femme"&&A("Jupe",1),
+    g==="femme"&&A("Soutien-gorge",cap(Math.ceil(days/4)+1,6)),
+    g==="femme"&&t.climate==="Froid"&&A("Collants",cap(Math.ceil(days/2),5)),
+    g==="homme"&&dressy&&A("Cravate / nœud papillon",1),
+    // — selon la météo —
+    t.climate==="Chaud"&&A("Chapeau / casquette"),
+    t.climate==="Chaud"&&A("Sandales",1),
+    t.climate==="Froid"&&A("Manteau chaud"),
+    t.climate==="Froid"&&A("Écharpe, bonnet, gants"),
+    t.climate==="Froid"&&A("Sous-vêtements thermiques",cap(days,4)),
+    t.climate==="Froid"&&A("Chaussettes chaudes",cap(Math.ceil(days/2),6)),
+    t.climate==="Tempéré"&&A("Veste mi-saison"),
+    t.climate==="Tempéré"&&A("Une couche supplémentaire"),
+    t.rain&&A("Veste imperméable"),
+    // — selon les activités —
+    (a.has("Baignade")||tt.has("Plage / Détente"))&&A("Maillot de bain",days>3?2:1),
+    (a.has("Baignade")||tt.has("Plage / Détente"))&&A("Tongs",1),
+    tt.has("Nature / Randonnée")&&A("Chaussures de randonnée",1),
+    a.has("Sport / Fitness")&&A("Tenue de sport",cap(Math.ceil(days/2),4)),
+    a.has("Sport / Fitness")&&A("Baskets de sport",1),
+    (a.has("Restaurants / Sorties")||a.has("Soirée habillée"))&&A("Tenue habillée"),
+    a.has("Plongée / Snorkeling")&&A("Lycra anti-UV"),
+    a.has("Plongée / Snorkeling")&&A("Chaussons aquatiques",1),
+    a.has("Vélo")&&A("Tenue cycliste"),
+    tt.has("Ski / Montagne")&&A("Combinaison / pantalon de ski"),
+    tt.has("Ski / Montagne")&&A("Gants de ski"),
+    tt.has("Ski / Montagne")&&A("Bonnet"),
+    tt.has("Ski / Montagne")&&A("Après-ski",1),
+  ].filter(Boolean);
+  const cl = adultCloth(t.gender, A1);
+  if(t.partner) cl.push(...adultCloth(t.partnerGender, A2));
+  if(kid){
+    if(band==="bebe"){
+      // Bébé (0–2 ans) : garde-robe spécifique, détaillée
+      cl.push(
+        kit("Bodys",cap(days+2,16)),
+        kit("Pyjamas / gigoteuses",cap(Math.ceil(days/2)+1,8)),
+        kit("Ensembles jour",cap(days+2,16)),
+        kit("Chaussettes bébé",cap(days+1,12)),
+        kit("Gilet / brassière",t.climate==="Froid"?3:2),
+        kit("Bavoirs",cap(days,8)),
+        kit("Chaussures / chaussons bébé",1),
+        t.climate==="Froid"&&kit("Combinaison chaude bébé")
+      );
+    } else {
+      // Petit / enfant / ado : structure parallèle à celle de l'adulte
+      const tops = band==="petit"?cap(days+1,14):band==="enfant"?cap(Math.ceil(days*0.85)+1,12):cap(Math.ceil(days*0.75)+1,12);
+      const bottoms = band==="petit"?cap(Math.ceil(days/2)+1,7):cap(Math.ceil(days/3)+1,5);
+      cl.push(
+        kit("Sous-vêtements enfant",cap(days+1,14)),
+        kit("Chaussettes enfant",cap(days+1,14)),
+        kit("T-shirts / hauts enfant",tops),
+        kit(t.climate==="Chaud"?"Shorts enfant":"Pantalons enfant",bottoms),
+        kit("Pull / gilet enfant",t.climate==="Froid"?3:days>5?2:1),
+        kit("Pyjama enfant",days>7?2:1),
+        kit("Baskets / chaussures de marche enfant",1),
+        t.climate==="Froid"&&kit("Manteau chaud enfant"),
+        (t.kidGender==="fille")&&kit("Robe enfant",days>4?2:1),
+        (t.kidGender==="fille")&&kit("Jupe enfant",1),
+        (t.kidGender==="fille"&&band==="ado")&&kit("Soutien-gorge ado",cap(Math.ceil(days/4)+1,6)),
+        (t.kidGender==="garcon"&&dressy)&&kit("Cravate / nœud papillon enfant",1)
+      );
+    }
+    // vêtements enfant liés à la météo
+    if(t.climate==="Chaud") cl.push(kit("Chapeau enfant"));
+    if(t.climate==="Froid") cl.push(kit("Bonnet + gants enfant"));
+    if(t.rain) cl.push(kit("Imperméable enfant"));
+    // vêtements enfant liés aux activités
+    if(a.has("Baignade")||tt.has("Plage / Détente")) cl.push(band==="bebe"?kit("Couches de bain",cap(days+2,14)):kit("Maillot anti-UV enfant",days>3?2:1));
+    if(tt.has("Ski / Montagne")) cl.push(kit("Combinaison de ski enfant"),kit("Gants + bonnet enfant"));
+    // chaussures enfant plus précises (petit / enfant / ado ; pas le bébé)
+    if(band!=="bebe"){
+      if(t.climate==="Chaud") cl.push(kit("Sandales enfant",1));
+      if(a.has("Baignade")||tt.has("Plage / Détente")) cl.push(kit("Tongs enfant",1));
+      if(a.has("Sport / Fitness")) cl.push(kit("Baskets de sport enfant",1));
+      if(tt.has("Nature / Randonnée")) cl.push(kit("Chaussures de randonnée enfant",1));
+      if(a.has("Restaurants / Sorties")||a.has("Soirée habillée")) cl.push(kit("Chaussures de ville enfant",1));
+      if(a.has("Plongée / Snorkeling")) cl.push(kit("Chaussons aquatiques enfant",1));
+      if(tt.has("Ski / Montagne")) cl.push(kit("Après-ski enfant",1));
+    }
+  }
+  add("Vêtements",cl);
+
+  // ---- Trousse de toilette
+  const sfx1 = label1 ? " ("+label1+")" : "";
+  const own1 = o => label1 ? Object.assign(o,{owner:label1,ownerN:1,ownerTag:tag1}) : o;
+  const wash=[
+    own1(it("Brosse à dents + dentifrice"+sfx1)),
+    own1(it("Déodorant"+sfx1)),
+    own1(it("Gel douche"+sfx1)),
+    own1(it("Shampoing"+sfx1)),
+    t.gender==="femme"&&own1(it("Après-shampoing"+sfx1)),
+    own1(it("Brosse / peigne"+sfx1)),
+    own1(it("Médicaments personnels"+sfx1)),
+    it("Mouchoirs"),
+  ];
+  if(t.partner){
+    const sfx2=" ("+label2+")";
+    const own2 = o => Object.assign(o,{owner:label2,ownerN:2,ownerTag:tag2});
+    wash.push(
+      own2(it("Brosse à dents + dentifrice"+sfx2)),
+      own2(it("Déodorant"+sfx2)),
+      own2(it("Gel douche"+sfx2)),
+      own2(it("Shampoing"+sfx2)),
+      t.partnerGender==="femme"&&own2(it("Après-shampoing"+sfx2)),
+      own2(it("Brosse / peigne"+sfx2)),
+      own2(it("Médicaments personnels"+sfx2))
+    );
+  }
+  if(kid){
+    wash.push(
+      band==="bebe"&&kit("Couches",cap(days*5,80)),
+      band==="bebe"&&kit("Lingettes"),
+      band==="bebe"&&kit("Liniment / crème change"),
+      band==="bebe"&&kit("Sérum physiologique"),
+      kit("Brosse à dents enfant"),
+      kit("Gel lavant / shampoing enfant"),
+      band==="ado"&&kit("Déodorant ado"),
+      kit("Paracétamol enfant + thermomètre")
+    );
+  }
+  add("Trousse de toilette",wash);
+
+  // ---- Électronique
+  const elec=[
+    ...perAdult(A=>[A("Téléphone + chargeur"),A("Écouteurs")]),
+    it("Batterie externe"),
+    t.abroad&&it("Adaptateur de prise"),
+    formal&&it("Ordinateur portable + chargeur"),
+  ];
+  if(kid && (band==="petit"||band==="enfant")) elec.push(kit("Tablette + écouteurs enfant"));
+  add("Électronique",elec);
+
+  // ---- Selon la météo (équipement non-porté ; les vêtements météo sont dans « Vêtements »)
+  const w=[];
+  if(t.climate==="Chaud"){
+    w.push(...perAdult(A=>[A("Lunettes de soleil"),A("Gourde")]));
+    w.push(it("Crème solaire"));
+    if(kid) w.push(kit("Crème solaire enfant haute protection"));
+  }
+  if(t.rain) w.push(it("Parapluie pliant"));
+  add("Selon la météo",w);
+
+  // ---- Une catégorie par activité / type de voyage (équipement ; les vêtements sont centralisés)
+  if(a.has("Baignade")||tt.has("Plage / Détente")){
+    const items=[
+      ...perAdult(A=>[A("Serviette de plage"),A("Lunettes de soleil")]),
+      t.climate!=="Chaud"&&it("Crème solaire"),
+    ];
+    if(kid) items.push((band==="petit"||band==="enfant")&&kit("Brassards / bouée"));
+    add("Plage & baignade",items);
+  }
+  if(a.has("Balade / Visite")) add("Balades & visites",[
+    ...perAdult(A=>[A("Petit sac à dos"),A("Gourde")]),
+    it("Billets / réservations"),it("Appareil photo")
+  ]);
+  if(tt.has("Nature / Randonnée")){
+    const items=[
+      ...perAdult(A=>[A("Sac à dos"),A("Gourde")]),
+      it("Trousse de premiers secours")
+    ];
+    if(kid) items.push(band==="bebe"&&kit("Porte-bébé de randonnée"), kit("En-cas enfant"));
+    add("Randonnée & nature",items);
+  }
+  if(a.has("Sport / Fitness")) add("Sport / Fitness",perAdult(A=>[A("Bouteille d'eau")]));
+  if(a.has("Soirée habillée")) add("Sorties & restaurants",perAdult(A=>[A("Accessoires / bijoux")]));
+  if(a.has("Réunions pro")) add("Réunions pro",[it("Cartes de visite"),it("Bloc-notes + stylo")]);
+  if(a.has("Plongée / Snorkeling")) add("Plongée / Snorkeling",perAdult(A=>[A("Masque + tuba")]));
+  if(a.has("Vélo")) add("Vélo",perAdult(A=>[A("Casque"),A("Gants de vélo")]));
+  if(tt.has("Ski / Montagne")){
+    const items=[
+      ...perAdult(A=>[A("Masque")]),
+      it("Crème solaire haute protection")
+    ];
+    add("Ski / Montagne",items);
+  }
+
+  return out.filter(s=>s.items.length||t.added.some(x=>x.cat===s.title));
+}
+
+function buildList(t,days){
+  const removed=new Set(t.removed);
+  return generate(t,days).map(sec=>{
+    let items=sec.items.filter(i=>!removed.has(i.name))
+      .map(i=>({name:i.name,qty:(i.name in t.qty)?t.qty[i.name]:i.qty,kid:!!i.kid,owner:i.owner||"",ownerN:i.ownerN||0,ownerTag:i.ownerTag||"",custom:false}));
+    t.added.filter(x=>x.cat===sec.title).forEach(x=>{
+      items.push({name:x.name,qty:(x.name in t.qty)?t.qty[x.name]:x.qty,kid:false,custom:true});
+    });
+    (DB.essentials||[]).filter(x=>x.cat===sec.title).forEach(x=>{
+      if(!removed.has(x.name) && !items.some(i=>i.name===x.name))
+        items.push({name:x.name,qty:(x.name in t.qty)?t.qty[x.name]:undefined,kid:false,custom:true});
+    });
+    return {title:sec.title,items};
+  }).filter(s=>s.items.length);
+}
+
+function progress(t){
+  const {days}=computeDays(t);
+  const names=[]; buildList(t,days).forEach(s=>s.items.forEach(i=>names.push(i.name)));
+  const set=new Set(t.checked);
+  const total=names.length, packed=names.filter(n=>set.has(n)).length;
+  return {packed,total,pct:total?Math.round(packed/total*100):0,days};
+}
+
+/* ---------- helpers ---------- */
+const fmtDate=d=>new Date(d).toLocaleDateString("fr-FR",{day:"numeric",month:"short"});
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const codeOf=t=>{ const d=(t.destination||"").trim().normalize("NFD").replace(/[\u0300-\u036f]/g,""); return d ? d.slice(0,3).toUpperCase().padEnd(3,"X").replace(/[^A-Z]/g,"X") : "•••"; };
+
+/* ---------- ROUTAGE ---------- */
+let currentCat=null;
+let uncheckArmed=false, uncheckTimer=null;
+const HOUSE='<svg class="homeglyph" viewBox="0 0 24 24" role="img" aria-label="départ"><path d="M3 11.4 12 4l9 7.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.6 10.4V20h12.8v-9.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function disarmUncheck(){ uncheckArmed=false; clearTimeout(uncheckTimer); const b=document.getElementById("resetBtn"); if(b){ b.textContent="↺"; b.classList.remove("btn--warn"); } }
+function showView(name){
+  disarmUncheck();
+  ["homeView","settingsView","tripView","categoryView","essentialsView","prefsView"].forEach(v=>document.getElementById(v).classList.toggle("hidden", v!==name));
+  window.scrollTo(0,0);
+}
+
+/* ---------- ACCUEIL (liste des voyages) ---------- */
+function ringSVG(pct){
+  const r=24, C=2*Math.PI*r, off=C*(1-pct/100);
+  return `<div class="ring-wrap">
+    <svg class="ring" viewBox="0 0 58 58">
+      <circle class="ring__bg" cx="29" cy="29" r="${r}"></circle>
+      <circle class="ring__fg" cx="29" cy="29" r="${r}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"></circle>
+    </svg>
+    <span>${pct}%</span>
+  </div>`;
+}
+function renderHome(){
+  const empty=DB.trips.length===0;
+  document.getElementById("homeEmpty").classList.toggle("hidden", !empty);
+  document.getElementById("homeGrid").classList.toggle("hidden", empty);
+  const cards=DB.trips.map(t=>{
+    const p=progress(t);
+    const {valid,reversed}=computeDays(t);
+    const when=reversed?"Dates à corriger":(valid?`${fmtDate(t.depart)} – ${fmtDate(t.retour)}`:"Dates à définir");
+    const confirming=confirmDelete===t.id;
+    return `<div class="tcard" data-open="${t.id}" role="button" tabindex="0">
+      <button class="tcard__del" data-del="${t.id}" aria-label="Supprimer">×</button>
+      <div class="tcard__strip">${HOUSE} <span class="arr">→</span> ${esc(codeOf(t))}</div>
+      <div class="tcard__body">
+        <div>
+          <div class="tcard__dest">${esc(t.destination||"Voyage sans nom")}</div>
+          <div class="tcard__when">${esc(when)}</div>
+          <div class="tcard__days">${p.days} ${p.days>1?"jours":"jour"} · ${p.packed}/${p.total} préparés</div>
+        </div>
+        ${ringSVG(p.pct)}
+      </div>
+      ${confirming?`<div class="tcard__confirm" data-stop="1">
+          <p>Supprimer ce voyage&nbsp;?</p>
+          <div class="tcard__confirm-row">
+            <button class="yes" data-delyes="${t.id}">Supprimer</button>
+            <button class="no" data-delno="1">Annuler</button>
+          </div></div>`:""}
+    </div>`;
+  }).join("");
+  document.getElementById("homeGrid").innerHTML = cards + `<div class="tcard tcard--new" data-new="1" role="button" tabindex="0">
+    <span class="plus">+</span><span class="lbl">Nouveau voyage</span></div>`;
+}
+document.getElementById("homeGrid").addEventListener("click", e=>{
+  const sel=q=>e.target.closest(q);
+  if(sel("[data-new]")){ const trip=newTrip(); DB.trips.push(trip); save(); openTrip(trip.id); openSettings(); return; }
+  if(sel("[data-delyes]")){ const id=sel("[data-delyes]").dataset.delyes; DB.trips=DB.trips.filter(x=>x.id!==id); confirmDelete=null; save(); renderHome(); return; }
+  if(sel("[data-delno]")){ confirmDelete=null; renderHome(); return; }
+  if(sel("[data-del]")){ confirmDelete=sel("[data-del]").dataset.del; renderHome(); return; }
+  if(sel("[data-stop]")) return;
+  if(sel("[data-open]")){ openTrip(sel("[data-open]").dataset.open); }
+});
+document.getElementById("heroNew").addEventListener("click", ()=>{ const trip=newTrip(); DB.trips.push(trip); save(); openTrip(trip.id); openSettings(); });
+
+/* ---------- OUVERTURE & HUB DU VOYAGE ---------- */
+function openTrip(id){
+  T=DB.trips.find(x=>x.id===id); if(!T) return;
+  confirmDelete=null; openAddCat=null; currentCat=null;
+  renderTripHub(); showView("tripView");
+}
+function goHome(){ save(); renderHome(); showView("homeView"); }
+
+function renderTripHub(){
+  if(!T) return;
+  const {days,valid,reversed}=computeDays(T);
+  document.getElementById("route").innerHTML=`${HOUSE} <span class="ticket__plane">→</span> ${esc(codeOf(T))}`;
+  document.getElementById("ticketDest").textContent=T.destination||"Votre voyage";
+  document.getElementById("ticketWhen").textContent=reversed?"Dates à corriger":((valid&&T.depart&&T.retour)?`${fmtDate(T.depart)} – ${fmtDate(T.retour)}`:"Dates à définir");
+  document.getElementById("daysNum").textContent=days;
+  document.getElementById("daysUnit").textContent=days>1?"jours":"jour";
+
+  const sections=buildList(T,days);
+  const set=new Set(T.checked);
+  let allP=0, allT=0;
+  const rows=sections.map(sec=>{
+    const tot=sec.items.length, pk=sec.items.filter(i=>set.has(i.name)).length;
+    allP+=pk; allT+=tot;
+    const pct=tot?Math.round(pk/tot*100):0;
+    const done=tot>0 && pk===tot;
+    return `<button class="catrow ${done?'catrow--done':''}" data-cat="${esc(sec.title)}">
+      <div class="catrow__main">
+        <div class="catrow__name">${esc(sec.title)}</div>
+        <div class="catrow__bar"><span style="width:${pct}%"></span></div>
+      </div>
+      <div class="catrow__meta">${pk}/${tot}</div>
+      <div class="catrow__chev">›</div>
+    </button>`;
+  }).join("");
+  document.getElementById("hubCats").innerHTML = rows || `<p class="emptynote">Aucune catégorie pour l'instant. Ouvrez les paramètres pour définir votre voyage.</p>`;
+
+  const pctAll=allT?Math.round(allP/allT*100):0;
+  document.getElementById("progressBar").style.width=pctAll+"%";
+  document.getElementById("progressLabel").textContent=`${allP} / ${allT} préparés · ${pctAll}%`;
+}
+
+document.getElementById("hubCats").addEventListener("click", e=>{
+  const b=e.target.closest("[data-cat]"); if(b) openCategory(b.dataset.cat);
+});
+document.getElementById("backHome").addEventListener("click", goHome);
+document.getElementById("openSettingsBtn").addEventListener("click", openSettings);
+document.getElementById("copyBtn").addEventListener("click", copyList);
+document.getElementById("resetBtn").addEventListener("click", ()=>{
+  if(!T) return;
+  const b=document.getElementById("resetBtn");
+  if(!uncheckArmed){
+    uncheckArmed=true; b.textContent="Tout décocher ?"; b.classList.add("btn--warn");
+    clearTimeout(uncheckTimer); uncheckTimer=setTimeout(disarmUncheck, 3000);
+    return;
+  }
+  disarmUncheck();
+  T.checked=[]; renderTripHub(); save();
+});
+
+/* ---------- PARAMÈTRES ---------- */
+function openSettings(){
+  if(!T) return;
+  document.getElementById("destination").value=T.destination;
+  document.getElementById("depart").value=T.depart;
+  document.getElementById("retour").value=T.retour;
+  document.getElementById("name1").value=T.name1||"";
+  document.getElementById("name2").value=T.name2||"";
+  renderChips(); updateKidAge(true); updatePartner(); updateDatesSum();
+  showView("settingsView");
+}
+function updateDatesSum(){
+  if(!T) return;
+  const {days,valid,reversed}=computeDays(T);
+  const el=document.getElementById("datesSum");
+  if(reversed) el.innerHTML='<span class="dates__warn">Le retour précède le départ.</span>';
+  else if(valid) el.textContent=`${days} ${days>1?"jours":"jour"} de bagages`;
+  else el.textContent="Choisissez vos dates.";
+}
+function makeChips(id,options,isActive,onPick){
+  const el=document.getElementById(id); el.innerHTML="";
+  options.forEach(o=>{
+    const b=document.createElement("button");
+    b.type="button"; b.className="chip"+(isActive(o.value)?" chip--on":"");
+    b.textContent=o.label;
+    b.addEventListener("click",()=>{ onPick(o.value); renderChips(); updateKidAge(false); updatePartner(); save(); });
+    el.appendChild(b);
+  });
+}
+function renderChips(){
+  if(!T) return;
+  makeChips("climate",
+    CLIMATES.map(c=>({label:c,value:c})).concat([{label:"☂ Pluie probable",value:"__rain"}]),
+    v=>v==="__rain"?T.rain:T.climate===v,
+    v=>{ v==="__rain"?T.rain=!T.rain:T.climate=v; });
+  makeChips("tripType",TRIPS.map(x=>({label:x,value:x})),
+    v=>T.tripTypes.includes(v),
+    v=>{ T.tripTypes=T.tripTypes.includes(v)?T.tripTypes.filter(x=>x!==v):T.tripTypes.concat(v); });
+  makeChips("activities",ACTIVITIES.map(a=>({label:a,value:a})),
+    v=>T.activities.includes(v),
+    v=>{ T.activities=T.activities.includes(v)?T.activities.filter(x=>x!==v):T.activities.concat(v); });
+  makeChips("transport",TRANSPORTS.map(x=>({label:x,value:x})),
+    v=>T.transports.includes(v),
+    v=>{ T.transports=T.transports.includes(v)?T.transports.filter(x=>x!==v):T.transports.concat(v); });
+  makeChips("context",
+    [{label:"✈ Étranger",value:"abroad"},{label:"Avec enfants",value:"kids"},{label:"2ᵉ adulte",value:"partner"}],
+    v=>T[v], v=>{ T[v]=!T[v]; });
+  makeChips("gender",
+    [{label:"Neutre",value:"neutre"},{label:"Femme",value:"femme"},{label:"Homme",value:"homme"}],
+    v=>T.gender===v, v=>{ T.gender=v; });
+  makeChips("kidGender",
+    [{label:"Neutre",value:"neutre"},{label:"Fille",value:"fille"},{label:"Garçon",value:"garcon"}],
+    v=>T.kidGender===v, v=>{ T.kidGender=v; });
+  makeChips("partnerGender",
+    [{label:"Neutre",value:"neutre"},{label:"Femme",value:"femme"},{label:"Homme",value:"homme"}],
+    v=>T.partnerGender===v, v=>{ T.partnerGender=v; });
+}
+function updateKidAge(syncValue){
+  const wrap=document.getElementById("kidAgeWrap");
+  if(!T){ wrap.classList.add("hidden"); return; }
+  wrap.classList.toggle("hidden", !T.kids);
+  if(syncValue) document.getElementById("kidAgeInput").value = (T.kidAge==null?"":T.kidAge);
+  document.getElementById("kidAgeBand").textContent = T.kids ? bandLabel(T.kidAge) : "";
+}
+function updatePartner(){
+  const wrap=document.getElementById("partnerWrap");
+  if(!wrap) return;
+  wrap.classList.toggle("hidden", !(T&&T.partner));
+}
+document.getElementById("destination").addEventListener("input",e=>{ if(T){T.destination=e.target.value; save();} });
+document.getElementById("depart").addEventListener("change",e=>{ if(T){T.depart=e.target.value; updateDatesSum(); save();} });
+document.getElementById("retour").addEventListener("change",e=>{ if(T){T.retour=e.target.value; updateDatesSum(); save();} });
+document.getElementById("kidAgeInput").addEventListener("input",e=>{
+  if(!T) return;
+  const v=parseInt(e.target.value,10);
+  T.kidAge = isNaN(v)?null:Math.max(0,Math.min(17,v));
+  updateKidAge(false); save();
+});
+document.getElementById("name1").addEventListener("input",e=>{ if(T){ T.name1=e.target.value; save(); } });
+document.getElementById("name2").addEventListener("input",e=>{ if(T){ T.name2=e.target.value; save(); } });
+document.getElementById("settingsDone").addEventListener("click", ()=>{ renderTripHub(); showView("tripView"); });
+document.getElementById("backFromSettings").addEventListener("click", ()=>{ renderTripHub(); showView("tripView"); });
+
+/* ---------- PAGE CATÉGORIE ---------- */
+function openCategory(title){ currentCat=title; openAddCat=null; navDir=0; renderCategory(); showView("categoryView"); }
+document.getElementById("backFromCategory").addEventListener("click", ()=>{ renderTripHub(); showView("tripView"); });
+
+/* navigation entre catégories : flèches + balayage */
+let navDir=0;
+if(typeof DB.hideChecked!=="boolean") DB.hideChecked=false;
+function catList(){ const {days}=computeDays(T); return buildList(T,days).map(s=>s.title); }
+function goCat(delta){
+  const list=catList(), i=list.indexOf(currentCat);
+  if(i<0) return;
+  const j=i+delta;
+  if(j<0||j>=list.length) return;
+  navDir=delta; currentCat=list[j]; openAddCat=null; renderCategory();
+}
+document.getElementById("catPrev").addEventListener("click",()=>goCat(-1));
+document.getElementById("catNext").addEventListener("click",()=>goCat(1));
+(function(){
+  const zone=document.getElementById("categoryView");
+  let x0=null,y0=null,t0=0;
+  zone.addEventListener("touchstart",e=>{ const t=e.changedTouches[0]; x0=t.clientX; y0=t.clientY; t0=Date.now(); },{passive:true});
+  zone.addEventListener("touchend",e=>{
+    if(x0==null) return;
+    const t=e.changedTouches[0], dx=t.clientX-x0, dy=t.clientY-y0; x0=null;
+    if(Date.now()-t0>800) return;
+    if(Math.abs(dx)<60 || Math.abs(dx)<Math.abs(dy)*1.6) return;
+    goCat(dx<0?1:-1);
+  },{passive:true});
+})();
+
+function renderCategory(){
+  if(!T||currentCat==null) return;
+  const {days}=computeDays(T);
+  const sec=buildList(T,days).find(s=>s.title===currentCat);
+  document.getElementById("catTitle").textContent=currentCat;
+  const set=new Set(T.checked);
+  const items=sec?sec.items:[];
+  const tot=items.length, pk=items.filter(i=>set.has(i.name)).length;
+  const pct=tot?Math.round(pk/tot*100):0;
+  document.getElementById("catPct").textContent=pct+"%";
+  document.getElementById("catBar").style.width=pct+"%";
+  document.getElementById("catLabel").textContent=`${pk} / ${tot} préparés`;
+
+  const list=catList(), idx=list.indexOf(currentCat);
+  document.getElementById("catPos").textContent=(idx+1)+" / "+list.length;
+  const prevB=document.getElementById("catPrev"), nextB=document.getElementById("catNext");
+  prevB.classList.toggle("catpager__btn--off", idx<=0); prevB.disabled=idx<=0;
+  nextB.classList.toggle("catpager__btn--off", idx>=list.length-1); nextB.disabled=idx>=list.length-1;
+
+  const hide=!!DB.hideChecked;
+  const shown = hide ? items.filter(i=>!set.has(i.name)) : items;
+  const rows=shown.map(it=>{
+    const on=set.has(it.name);
+    const qty=it.qty?`<div class="qty"><button data-act="dec" data-name="${esc(it.name)}" data-base="${it.qty}">–</button><span>${it.qty}</span><button data-act="inc" data-name="${esc(it.name)}" data-base="${it.qty}">+</button></div>`:"";
+    const kidTag=it.kid?`<span class="line__kid" title="Article pour l'enfant"><svg class="kidicon" viewBox="0 0 24 24" role="img" aria-label="bébé"><circle cx="12" cy="10" r="6.2" fill="currentColor"/><path d="M12 2.6c2.2 0 3 1.6 1.9 2.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="9.7" cy="9.6" r="1.05" fill="#fff"/><circle cx="14.3" cy="9.6" r="1.05" fill="#fff"/><path d="M9.8 12.4c1.3 1.1 3.1 1.1 4.4 0" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span>`:"";
+    const ownTag=it.owner?`<span class="line__own line__own--${it.ownerN||1}" title="Affaires de ${esc(it.owner)}">${esc(it.ownerTag||it.owner[0])}</span>`:"";
+    const tag=kidTag||ownTag;
+    const disp=it.owner?it.name.slice(0,it.name.length-(" ("+it.owner+")").length):it.name;
+    return `<li class="line ${on?'line--on':''}">
+      <button class="line__check" data-act="check" data-name="${esc(it.name)}">
+        <span class="line__box">${on?'✓':''}</span>
+        <span class="line__name">${esc(disp)}</span></button>
+      ${tag}${qty}
+      <button class="line__del" data-act="del" data-name="${esc(it.name)}">×</button></li>`;
+  }).join("");
+  const addUI=openAddCat===currentCat?`<div class="addrow">
+      <input type="text" id="addName" placeholder="Nouvel article…" />
+      <input type="number" id="addQty" min="1" max="99" placeholder="qté" />
+      <button class="ok" data-act="addok">Ajouter</button>
+      <button class="cancel" data-act="addcancel">Annuler</button></div>`:"";
+  let empty="";
+  if(tot===0) empty=`<p class="emptynote">Aucun article ici pour l'instant. Ajoutez-en un ci-dessous.</p>`;
+  else if(shown.length===0) empty=`<p class="allchecked">Tout est coché ✦</p>`;
+  const tools=`<div class="cattools"><button class="toggle ${hide?'toggle--on':''}" data-act="togglehide">${hide?'Afficher tout':'Masquer les cochés'}</button></div>`;
+  const dx = navDir>0?"24px":navDir<0?"-24px":"0px"; navDir=0;
+  document.getElementById("categoryBody").innerHTML=`<div class="catanim" style="--catdx:${dx}">${tools}<div class="cat">
+    <div class="cat__head"><span class="cat__title">${esc(currentCat)}</span>
+      <button class="cat__add" data-act="addopen">+ ajouter</button></div>
+    <ul class="cat__list">${rows}</ul>${empty}${addUI}</div></div>`;
+  if(openAddCat===currentCat){ const f=document.getElementById("addName"); if(f) setTimeout(()=>f.focus(),0); }
+}
+
+document.getElementById("categoryBody").addEventListener("click", e=>{
+  const btn=e.target.closest("button"); if(!btn||!T) return;
+  const act=btn.dataset.act, name=btn.dataset.name;
+  if(act==="check"){ const s=new Set(T.checked); s.has(name)?s.delete(name):s.add(name); T.checked=[...s]; }
+  else if(act==="del"){
+    if(T.added.some(x=>x.name===name)) T.added=T.added.filter(x=>x.name!==name);
+    else if(!T.removed.includes(name)) T.removed=T.removed.concat(name);
+    delete T.qty[name];
+  }
+  else if(act==="inc"||act==="dec"){
+    const base=parseInt(btn.dataset.base,10)||1;
+    const cur=(name in T.qty)?T.qty[name]:base;
+    T.qty[name]=Math.max(1,Math.min(99,cur+(act==="inc"?1:-1)));
+  }
+  else if(act==="togglehide"){ DB.hideChecked=!DB.hideChecked; }
+  else if(act==="addopen"){ openAddCat=currentCat; }
+  else if(act==="addcancel"){ openAddCat=null; }
+  else if(act==="addok"){
+    const n=document.getElementById("addName"), q=document.getElementById("addQty");
+    const val=n?n.value.trim():"";
+    if(val){ const qv=q&&q.value?Math.max(1,Math.min(99,parseInt(q.value,10))):undefined; T.added=T.added.concat({cat:currentCat,name:val,qty:qv}); }
+    openAddCat=null;
+  } else return;
+  renderCategory(); save();
+});
+
+/* ---------- copier ---------- */
+function copyList(){
+  if(!T) return;
+  const {days}=computeDays(T);
+  const text=buildList(T,days).map(s=>s.title.toUpperCase()+"\n"+s.items.map(i=>`  - ${i.name}${i.qty?` ×${i.qty}`:""}`).join("\n")).join("\n\n");
+  const full=`LA MALLE — ${T.destination||"Voyage"} · ${days} ${days>1?"jours":"jour"}\n\n${text}`;
+  const btn=document.getElementById("copyBtn");
+  const done=()=>{btn.textContent="✓ Copié";setTimeout(()=>btn.textContent="Copier la liste",1800);};
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(full).then(done).catch(()=>fb(full,done));
+  else fb(full,done);
+}
+function fb(t,cb){ const ta=document.createElement("textarea"); ta.value=t; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); try{document.execCommand("copy");cb();}catch(e){} document.body.removeChild(ta); }
+
+/* ---------- service worker ---------- */
+function registerSW(){
+  if("serviceWorker" in navigator){
+    try{ navigator.serviceWorker.register("sw.js").catch(()=>{}); }catch(e){}
+  }
+}
+
+/* ---------- MES ESSENTIELS (globaux) ---------- */
+if(!Array.isArray(DB.essentials)) DB.essentials=[];
+function openEssentials(){ renderEssentials(); showView("essentialsView"); }
+function renderEssentials(){
+  const sel=document.getElementById("essCat");
+  if(!sel.options.length){ BASE_CATS.forEach(c=>{ const o=document.createElement("option"); o.value=c; o.textContent=c; sel.appendChild(o); }); }
+  const items=DB.essentials||[];
+  document.getElementById("essList").innerHTML = items.length
+    ? items.map((x,i)=>`<div class="essrow">
+        <span class="essrow__name">${esc(x.name)}</span>
+        <span class="essrow__cat">${esc(x.cat)}</span>
+        <button class="essrow__del" data-del="${i}" aria-label="Retirer">×</button>
+      </div>`).join("")
+    : `<p class="essempty">Aucun essentiel pour l'instant. Ajoutez-en un ci-dessous.</p>`;
+}
+document.getElementById("openEssentials").addEventListener("click", openEssentials);
+document.getElementById("backFromEssentials").addEventListener("click", ()=>{ renderHome(); showView("homeView"); });
+document.getElementById("essList").addEventListener("click", e=>{
+  const b=e.target.closest("[data-del]"); if(!b) return;
+  DB.essentials.splice(parseInt(b.dataset.del,10),1); save(); renderEssentials();
+});
+function addEssential(){
+  const n=document.getElementById("essName"), c=document.getElementById("essCat");
+  const name=n.value.trim(); if(!name) return;
+  if(!Array.isArray(DB.essentials)) DB.essentials=[];
+  DB.essentials.push({name, cat:c.value||BASE_CATS[0]});
+  n.value=""; save(); renderEssentials(); n.focus();
+}
+document.getElementById("essAdd").addEventListener("click", addEssential);
+document.getElementById("essName").addEventListener("keydown", e=>{ if(e.key==="Enter") addEssential(); });
+
+/* ---------- THÈMES ---------- */
+const THEMES={
+  lagon:{name:"Lagon", v:{teal:"#0d4f4a","teal-deep":"#0a3a36",mid:"#0f5a54",coral:"#ee6c4d",ink:"#16302c",muted:"#6c807b",paper:"#e9e4d8",card:"#fbfaf5",line:"#d8d2c4"}},
+  terracotta:{name:"Terracotta", v:{teal:"#a0563a","teal-deep":"#4f2a20",mid:"#6e3a2c",coral:"#e08a3c",ink:"#3a2820",muted:"#8a7565",paper:"#efe6d6",card:"#fbf7ef",line:"#e0d4c2"}},
+  indigo:{name:"Indigo", v:{teal:"#2f4a8a","teal-deep":"#1a2750",mid:"#26356b",coral:"#ee6c4d",ink:"#1a2236",muted:"#6b7488",paper:"#e6e8f0",card:"#fafbff",line:"#d2d8e6"}},
+  foret:{name:"Forêt", v:{teal:"#3a6b3f","teal-deep":"#1f3a22",mid:"#2c5230",coral:"#e0a13a",ink:"#1d2a1c",muted:"#6a7a64",paper:"#e6ece0",card:"#fafcf6",line:"#d4ddc8"}},
+  prune:{name:"Prune", v:{teal:"#7c3a6b","teal-deep":"#43203a",mid:"#5e2c52",coral:"#e07a9a",ink:"#2e1f2c",muted:"#7d6b78",paper:"#efe6ec",card:"#fdf8fb",line:"#e2d4dd"}}
+};
+function applyTheme(id){
+  const t=THEMES[id]||THEMES.lagon;
+  const r=document.documentElement.style;
+  Object.entries(t.v).forEach(([k,val])=>r.setProperty("--"+k,val));
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute("content", t.v["teal-deep"]);
+}
+function openPrefs(){ renderThemes(); showView("prefsView"); }
+function renderThemes(){
+  const cur=DB.theme||"lagon";
+  document.getElementById("themeGrid").innerHTML=Object.entries(THEMES).map(([id,t])=>`
+    <button class="swatch ${id===cur?'swatch--on':''}" data-theme="${id}">
+      <span class="swatch__chips">
+        <span style="background:${t.v.paper}"></span>
+        <span style="background:${t.v["teal-deep"]}"></span>
+        <span style="background:${t.v.coral}"></span>
+        <span style="background:${t.v.teal}"></span>
+      </span>
+      <span class="swatch__name">${t.name}</span>
+    </button>`).join("");
+}
+document.getElementById("openPrefs").addEventListener("click", openPrefs);
+document.getElementById("backFromPrefs").addEventListener("click", ()=>{ renderHome(); showView("homeView"); });
+document.getElementById("themeGrid").addEventListener("click", e=>{
+  const b=e.target.closest("[data-theme]"); if(!b) return;
+  DB.theme=b.dataset.theme; applyTheme(DB.theme); save(); renderThemes();
+});
+
+/* ---------- init ---------- */
+if(typeof DB.theme!=="string") DB.theme="lagon";
+applyTheme(DB.theme);
+renderHome();
+registerSW();
+
+</script>
+</body>
+</html>
