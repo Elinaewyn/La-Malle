@@ -132,6 +132,10 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24
 .kidicon{width:18px;height:18px;display:block;}
 .line--on .line__name{color:var(--muted);text-decoration:line-through;}
 .line--on .line__kid{color:var(--muted);}
+.line__own{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:999px;font-family:var(--body);font-size:11px;font-weight:700;color:#fff;line-height:1;}
+.line__own--1{background:var(--teal);}
+.line__own--2{background:var(--coral);}
+.line--on .line__own{opacity:.45;}
 .qty{display:flex;align-items:center;flex:none;border:1.5px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;}
 .qty button{width:26px;height:26px;border:none;background:#fff;color:var(--teal-deep);font-size:15px;cursor:pointer;font-family:var(--display);line-height:1;}
 .qty button:hover{background:#f0ece0;}
@@ -326,8 +330,15 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);padding:24
       </div>
     </div>
     <div class="field">
-      <span class="field__label">Genre</span>
+      <span class="field__label">Voyageur principal</span>
+      <input id="name1" type="text" maxlength="20" class="date__input" placeholder="Prénom (optionnel)" style="margin-bottom:8px" />
       <div class="chips" id="gender"></div>
+      <div id="partnerWrap" class="kidage hidden">
+        <span class="field__label">Prénom du 2ᵉ adulte</span>
+        <input id="name2" type="text" maxlength="20" class="date__input" placeholder="Prénom (optionnel)" />
+        <span class="field__label" style="margin-top:8px">Genre du 2ᵉ adulte</span>
+        <div class="chips" id="partnerGender"></div>
+      </div>
     </div>
     <button class="btn btn--primary" id="settingsDone">Voir les catégories →</button>
   </section>
@@ -418,6 +429,7 @@ function newTrip(){
     destination:"", depart:iso(today), retour:iso(plus(today,4)),
     climate:"Tempéré", rain:false, tripTypes:["Ville / Culture"],
     activities:[], abroad:false, kids:false, kidAge:4, gender:"neutre", kidGender:"neutre", transports:[],
+    partner:false, partnerGender:"neutre", name1:"", name2:"",
     removed:[], added:[], qty:{}, checked:[]
   };
 }
@@ -429,6 +441,10 @@ function normalizeTrip(t){
   if(typeof t.kidAge!=="number") t.kidAge = 4;
   if(typeof t.gender!=="string") t.gender = "neutre";
   if(typeof t.kidGender!=="string") t.kidGender = "neutre";
+  if(typeof t.partner!=="boolean") t.partner = false;
+  if(typeof t.partnerGender!=="string") t.partnerGender = "neutre";
+  if(typeof t.name1!=="string") t.name1 = "";
+  if(typeof t.name2!=="string") t.name2 = "";
   ["activities","removed","added","checked","transports"].forEach(k=>{ if(!Array.isArray(t[k])) t[k]=[]; });
   if(t.activities.includes("Balade")||t.activities.includes("Visite")){
     t.activities=t.activities.filter(x=>x!=="Balade"&&x!=="Visite");
@@ -495,12 +511,38 @@ function generate(t,days){
   const it=(name,qty,child)=>{ const o=qty?{name,qty}:{name}; if(child)o.kid=true; return o; };
   const kit=(name,qty)=>it(name,qty,true); // article enfant
 
+  // ---- Déclinaison « 2 adultes » : étiquetage, badges courts, fabrique réutilisable
+  const label1 = t.partner ? ((t.name1||"").trim() || "Adulte 1") : "";
+  const label2 = t.partner ? ((t.name2||"").trim() || "Adulte 2") : "";
+  const shortTags = (u,v)=>{
+    const up=s=>s.toUpperCase();
+    const i1=up(u[0]||"?"), i2=up(v[0]||"?");
+    if(i1!==i2) return [i1,i2];
+    const two=s=>up(s[0]||"")+(s[1]?s[1].toLowerCase():"");
+    const t1=two(u), t2=two(v);
+    if(t1!==t2) return [t1,t2];
+    return [i1+"1", i2+"2"];
+  };
+  const [tag1,tag2] = t.partner ? shortTags(label1,label2) : ["",""];
+  const mkAdult = (label,n,tag)=>(name,qty)=>{
+    const o=it(name+(label?" ("+label+")":""),qty);
+    if(label){ o.owner=label; o.ownerN=n; o.ownerTag=tag; }
+    return o;
+  };
+  const A1 = mkAdult(label1,1,tag1);   // 1er adulte (ou solo, sans badge)
+  const A2 = mkAdult(label2,2,tag2);   // 2e adulte
+  // décline une liste d'articles personnels pour chaque adulte présent
+  const perAdult = make => {
+    let arr = make(A1).filter(Boolean);
+    if(t.partner) arr = arr.concat(make(A2).filter(Boolean));
+    return arr;
+  };
+
   // ---- Documents & essentiels
   const docs=[
-    it(t.abroad?"Passeport":"Pièce d'identité"),
+    ...perAdult(A=>[A(t.abroad?"Passeport":"Pièce d'identité"), A("Portefeuille (cartes, espèces)")]),
     t.abroad&&it("Copie des documents (papier + cloud)"),
     t.abroad&&it("Assurance voyage"),
-    it("Portefeuille (cartes, espèces)"),
     t.abroad&&it("Devises locales"),
     it("Clés (maison, voiture)"),
   ];
@@ -527,46 +569,128 @@ function generate(t,days){
   const _seen=new Set();
   add("Transport", trans.filter(x=>x && !_seen.has(x.name) && _seen.add(x.name)));
 
-  // ---- Vêtements
-  const cl=[
-    it("Sous-vêtements",cap(days+1,14)),
-    it("Chaussettes",cap(days+1,14)),
-    it("T-shirts / hauts",cap(Math.ceil(days*0.75)+1,12)),
-    it(t.climate==="Chaud"?"Shorts":"Pantalons",cap(Math.ceil(days/3)+1,5)),
-    it("Pull / veste légère",t.climate==="Froid"?3:days>5?2:1),
-    it("Pyjama",days>7?2:1),
-    it("Chaussures de marche",1),
-    formal&&it("Tenue formelle (costume / tailleur)",cap(Math.ceil(days/2),4)),
-    formal&&it("Chaussures de ville",1),
-    t.gender==="femme"&&it("Robe",days>4?2:1),
-    t.gender==="femme"&&it("Jupe",1),
-    t.gender==="femme"&&it("Soutien-gorge",cap(Math.ceil(days/4)+1,6)),
-    t.gender==="femme"&&t.climate==="Froid"&&it("Collants",cap(Math.ceil(days/2),5)),
-    t.gender==="homme"&&dressy&&it("Cravate / nœud papillon",1),
-  ];
+  // ---- Vêtements (centralise TOUT ce qui se porte : base + météo + activités)
+  const adultCloth = (g, A) => [
+    // — base —
+    A("Sous-vêtements",cap(days+1,14)),
+    A("Chaussettes",cap(days+1,14)),
+    A("T-shirts / hauts",cap(Math.ceil(days*0.75)+1,12)),
+    A(t.climate==="Chaud"?"Shorts":"Pantalons",cap(Math.ceil(days/3)+1,5)),
+    A("Pull / veste légère",t.climate==="Froid"?3:days>5?2:1),
+    A("Pyjama",days>7?2:1),
+    A("Baskets / chaussures de marche",1),
+    formal&&A("Tenue formelle (costume / tailleur)",cap(Math.ceil(days/2),4)),
+    (formal||a.has("Restaurants / Sorties")||a.has("Soirée habillée"))&&A("Chaussures de ville",1),
+    g==="femme"&&A("Robe",days>4?2:1),
+    g==="femme"&&A("Jupe",1),
+    g==="femme"&&A("Soutien-gorge",cap(Math.ceil(days/4)+1,6)),
+    g==="femme"&&t.climate==="Froid"&&A("Collants",cap(Math.ceil(days/2),5)),
+    g==="homme"&&dressy&&A("Cravate / nœud papillon",1),
+    // — selon la météo —
+    t.climate==="Chaud"&&A("Chapeau / casquette"),
+    t.climate==="Chaud"&&A("Sandales",1),
+    t.climate==="Froid"&&A("Manteau chaud"),
+    t.climate==="Froid"&&A("Écharpe, bonnet, gants"),
+    t.climate==="Froid"&&A("Sous-vêtements thermiques",cap(days,4)),
+    t.climate==="Froid"&&A("Chaussettes chaudes",cap(Math.ceil(days/2),6)),
+    t.climate==="Tempéré"&&A("Veste mi-saison"),
+    t.climate==="Tempéré"&&A("Une couche supplémentaire"),
+    t.rain&&A("Veste imperméable"),
+    // — selon les activités —
+    (a.has("Baignade")||tt.has("Plage / Détente"))&&A("Maillot de bain",days>3?2:1),
+    (a.has("Baignade")||tt.has("Plage / Détente"))&&A("Tongs",1),
+    tt.has("Nature / Randonnée")&&A("Chaussures de randonnée",1),
+    a.has("Sport / Fitness")&&A("Tenue de sport",cap(Math.ceil(days/2),4)),
+    a.has("Sport / Fitness")&&A("Baskets de sport",1),
+    (a.has("Restaurants / Sorties")||a.has("Soirée habillée"))&&A("Tenue habillée"),
+    a.has("Plongée / Snorkeling")&&A("Lycra anti-UV"),
+    a.has("Plongée / Snorkeling")&&A("Chaussons aquatiques",1),
+    a.has("Vélo")&&A("Tenue cycliste"),
+    tt.has("Ski / Montagne")&&A("Combinaison / pantalon de ski"),
+    tt.has("Ski / Montagne")&&A("Gants de ski"),
+    tt.has("Ski / Montagne")&&A("Bonnet"),
+    tt.has("Ski / Montagne")&&A("Après-ski",1),
+  ].filter(Boolean);
+  const cl = adultCloth(t.gender, A1);
+  if(t.partner) cl.push(...adultCloth(t.partnerGender, A2));
   if(kid){
-    const q = band==="bebe"?cap(Math.ceil(days*1.5)+2,20):band==="petit"?cap(days+2,16):cap(days+1,14);
-    cl.push(
-      kit("Tenues enfant", q),
-      band!=="bebe"&&kit("Sous-vêtements enfant",cap(days+1,14)),
-      kit(band==="bebe"?"Gigoteuse":"Pyjama enfant",days>7?2:1),
-      kit("Chaussures enfant",1),
-      band==="bebe"&&kit("Bodys",cap(days+2,16)),
-      band==="bebe"&&kit("Bavoirs",cap(days,8)),
-      t.climate==="Froid"&&kit("Manteau / combinaison chaude enfant"),
-      (t.kidGender==="fille"&&band!=="bebe")&&kit("Robe enfant",days>4?2:1),
-      (t.kidGender==="fille"&&band!=="bebe")&&kit("Jupe enfant",1),
-      (t.kidGender==="fille"&&band==="ado")&&kit("Soutien-gorge ado",cap(Math.ceil(days/4)+1,6)),
-      (t.kidGender==="garcon"&&dressy&&band!=="bebe")&&kit("Cravate / nœud papillon enfant",1)
-    );
+    if(band==="bebe"){
+      // Bébé (0–2 ans) : garde-robe spécifique, détaillée
+      cl.push(
+        kit("Bodys",cap(days+2,16)),
+        kit("Pyjamas / gigoteuses",cap(Math.ceil(days/2)+1,8)),
+        kit("Ensembles jour",cap(days+2,16)),
+        kit("Chaussettes bébé",cap(days+1,12)),
+        kit("Gilet / brassière",t.climate==="Froid"?3:2),
+        kit("Bavoirs",cap(days,8)),
+        kit("Chaussures / chaussons bébé",1),
+        t.climate==="Froid"&&kit("Combinaison chaude bébé")
+      );
+    } else {
+      // Petit / enfant / ado : structure parallèle à celle de l'adulte
+      const tops = band==="petit"?cap(days+1,14):band==="enfant"?cap(Math.ceil(days*0.85)+1,12):cap(Math.ceil(days*0.75)+1,12);
+      const bottoms = band==="petit"?cap(Math.ceil(days/2)+1,7):cap(Math.ceil(days/3)+1,5);
+      cl.push(
+        kit("Sous-vêtements enfant",cap(days+1,14)),
+        kit("Chaussettes enfant",cap(days+1,14)),
+        kit("T-shirts / hauts enfant",tops),
+        kit(t.climate==="Chaud"?"Shorts enfant":"Pantalons enfant",bottoms),
+        kit("Pull / gilet enfant",t.climate==="Froid"?3:days>5?2:1),
+        kit("Pyjama enfant",days>7?2:1),
+        kit("Baskets / chaussures de marche enfant",1),
+        t.climate==="Froid"&&kit("Manteau chaud enfant"),
+        (t.kidGender==="fille")&&kit("Robe enfant",days>4?2:1),
+        (t.kidGender==="fille")&&kit("Jupe enfant",1),
+        (t.kidGender==="fille"&&band==="ado")&&kit("Soutien-gorge ado",cap(Math.ceil(days/4)+1,6)),
+        (t.kidGender==="garcon"&&dressy)&&kit("Cravate / nœud papillon enfant",1)
+      );
+    }
+    // vêtements enfant liés à la météo
+    if(t.climate==="Chaud") cl.push(kit("Chapeau enfant"));
+    if(t.climate==="Froid") cl.push(kit("Bonnet + gants enfant"));
+    if(t.rain) cl.push(kit("Imperméable enfant"));
+    // vêtements enfant liés aux activités
+    if(a.has("Baignade")||tt.has("Plage / Détente")) cl.push(band==="bebe"?kit("Couches de bain",cap(days+2,14)):kit("Maillot anti-UV enfant",days>3?2:1));
+    if(tt.has("Ski / Montagne")) cl.push(kit("Combinaison de ski enfant"),kit("Gants + bonnet enfant"));
+    // chaussures enfant plus précises (petit / enfant / ado ; pas le bébé)
+    if(band!=="bebe"){
+      if(t.climate==="Chaud") cl.push(kit("Sandales enfant",1));
+      if(a.has("Baignade")||tt.has("Plage / Détente")) cl.push(kit("Tongs enfant",1));
+      if(a.has("Sport / Fitness")) cl.push(kit("Baskets de sport enfant",1));
+      if(tt.has("Nature / Randonnée")) cl.push(kit("Chaussures de randonnée enfant",1));
+      if(a.has("Restaurants / Sorties")||a.has("Soirée habillée")) cl.push(kit("Chaussures de ville enfant",1));
+      if(a.has("Plongée / Snorkeling")) cl.push(kit("Chaussons aquatiques enfant",1));
+      if(tt.has("Ski / Montagne")) cl.push(kit("Après-ski enfant",1));
+    }
   }
   add("Vêtements",cl);
 
   // ---- Trousse de toilette
+  const sfx1 = label1 ? " ("+label1+")" : "";
+  const own1 = o => label1 ? Object.assign(o,{owner:label1,ownerN:1,ownerTag:tag1}) : o;
   const wash=[
-    it("Brosse à dents + dentifrice"),it("Déodorant"),it("Gel douche / shampoing"),
-    it("Brosse / peigne"),it("Médicaments personnels"),it("Mouchoirs"),
+    own1(it("Brosse à dents + dentifrice"+sfx1)),
+    own1(it("Déodorant"+sfx1)),
+    own1(it("Gel douche"+sfx1)),
+    own1(it("Shampoing"+sfx1)),
+    t.gender==="femme"&&own1(it("Après-shampoing"+sfx1)),
+    own1(it("Brosse / peigne"+sfx1)),
+    own1(it("Médicaments personnels"+sfx1)),
+    it("Mouchoirs"),
   ];
+  if(t.partner){
+    const sfx2=" ("+label2+")";
+    const own2 = o => Object.assign(o,{owner:label2,ownerN:2,ownerTag:tag2});
+    wash.push(
+      own2(it("Brosse à dents + dentifrice"+sfx2)),
+      own2(it("Déodorant"+sfx2)),
+      own2(it("Gel douche"+sfx2)),
+      own2(it("Shampoing"+sfx2)),
+      t.partnerGender==="femme"&&own2(it("Après-shampoing"+sfx2)),
+      own2(it("Brosse / peigne"+sfx2)),
+      own2(it("Médicaments personnels"+sfx2))
+    );
+  }
   if(kid){
     wash.push(
       band==="bebe"&&kit("Couches",cap(days*5,80)),
@@ -575,6 +699,7 @@ function generate(t,days){
       band==="bebe"&&kit("Sérum physiologique"),
       kit("Brosse à dents enfant"),
       kit("Gel lavant / shampoing enfant"),
+      band==="ado"&&kit("Déodorant ado"),
       kit("Paracétamol enfant + thermomètre")
     );
   }
@@ -582,46 +707,55 @@ function generate(t,days){
 
   // ---- Électronique
   const elec=[
-    it("Téléphone + chargeur"),it("Batterie externe"),it("Écouteurs"),
+    ...perAdult(A=>[A("Téléphone + chargeur"),A("Écouteurs")]),
+    it("Batterie externe"),
     t.abroad&&it("Adaptateur de prise"),
     formal&&it("Ordinateur portable + chargeur"),
   ];
   if(kid && (band==="petit"||band==="enfant")) elec.push(kit("Tablette + écouteurs enfant"));
   add("Électronique",elec);
 
-  // ---- Selon la météo
+  // ---- Selon la météo (équipement non-porté ; les vêtements météo sont dans « Vêtements »)
   const w=[];
-  if(t.climate==="Chaud") w.push(it("Lunettes de soleil"),it("Crème solaire"),it("Chapeau / casquette"),it("Gourde"),it("Sandales"));
-  if(t.climate==="Froid") w.push(it("Manteau chaud"),it("Écharpe, bonnet, gants"),it("Sous-vêtements thermiques",cap(days,4)),it("Chaussettes chaudes",cap(Math.ceil(days/2),6)));
-  if(t.climate==="Tempéré") w.push(it("Veste mi-saison"),it("Une couche supplémentaire"));
-  if(t.rain) w.push(it("Veste imperméable"),it("Parapluie pliant"));
-  if(kid){
-    if(t.climate==="Chaud") w.push(kit("Chapeau enfant"),kit("Crème solaire enfant haute protection"));
-    if(t.climate==="Froid") w.push(kit("Bonnet + gants enfant"));
-    if(t.rain) w.push(kit("Imperméable enfant"));
+  if(t.climate==="Chaud"){
+    w.push(...perAdult(A=>[A("Lunettes de soleil"),A("Gourde")]));
+    w.push(it("Crème solaire"));
+    if(kid) w.push(kit("Crème solaire enfant haute protection"));
   }
+  if(t.rain) w.push(it("Parapluie pliant"));
   add("Selon la météo",w);
 
-  // ---- Une catégorie par activité / type de voyage
+  // ---- Une catégorie par activité / type de voyage (équipement ; les vêtements sont centralisés)
   if(a.has("Baignade")||tt.has("Plage / Détente")){
-    const items=[it("Maillot de bain",days>3?2:1),it("Serviette de plage"),it("Tongs"),it("Lunettes de soleil"),t.climate!=="Chaud"&&it("Crème solaire")];
-    if(kid) items.push(band==="bebe"?kit("Couches de bain"):kit("Maillot anti-UV enfant"), (band==="petit"||band==="enfant")&&kit("Brassards / bouée"));
+    const items=[
+      ...perAdult(A=>[A("Serviette de plage"),A("Lunettes de soleil")]),
+      t.climate!=="Chaud"&&it("Crème solaire"),
+    ];
+    if(kid) items.push((band==="petit"||band==="enfant")&&kit("Brassards / bouée"));
     add("Plage & baignade",items);
   }
-  if(a.has("Balade / Visite")) add("Balades & visites",[it("Chaussures confortables"),it("Petit sac à dos"),it("Gourde"),it("Billets / réservations"),it("Appareil photo")]);
+  if(a.has("Balade / Visite")) add("Balades & visites",[
+    ...perAdult(A=>[A("Petit sac à dos"),A("Gourde")]),
+    it("Billets / réservations"),it("Appareil photo")
+  ]);
   if(tt.has("Nature / Randonnée")){
-    const items=[it("Chaussures de randonnée"),it("Sac à dos"),it("Gourde"),it("Trousse de premiers secours")];
+    const items=[
+      ...perAdult(A=>[A("Sac à dos"),A("Gourde")]),
+      it("Trousse de premiers secours")
+    ];
     if(kid) items.push(band==="bebe"&&kit("Porte-bébé de randonnée"), kit("En-cas enfant"));
     add("Randonnée & nature",items);
   }
-  if(a.has("Sport / Fitness")) add("Sport / Fitness",[it("Tenue de sport",cap(Math.ceil(days/2),4)),it("Baskets"),it("Bouteille d'eau")]);
-  if(a.has("Restaurants / Sorties")||a.has("Soirée habillée")) add("Sorties & restaurants",[it("Tenue habillée"),it("Chaussures élégantes"),a.has("Soirée habillée")&&it("Accessoires / bijoux")]);
+  if(a.has("Sport / Fitness")) add("Sport / Fitness",perAdult(A=>[A("Bouteille d'eau")]));
+  if(a.has("Soirée habillée")) add("Sorties & restaurants",perAdult(A=>[A("Accessoires / bijoux")]));
   if(a.has("Réunions pro")) add("Réunions pro",[it("Cartes de visite"),it("Bloc-notes + stylo")]);
-  if(a.has("Plongée / Snorkeling")) add("Plongée / Snorkeling",[it("Masque + tuba"),it("Chaussons aquatiques"),it("Lycra anti-UV")]);
-  if(a.has("Vélo")) add("Vélo",[it("Casque"),it("Gants de vélo"),it("Tenue cycliste")]);
+  if(a.has("Plongée / Snorkeling")) add("Plongée / Snorkeling",perAdult(A=>[A("Masque + tuba")]));
+  if(a.has("Vélo")) add("Vélo",perAdult(A=>[A("Casque"),A("Gants de vélo")]));
   if(tt.has("Ski / Montagne")){
-    const items=[it("Combinaison / pantalon de ski"),it("Gants de ski"),it("Masque"),it("Bonnet"),it("Crème solaire haute protection"),it("Après-ski")];
-    if(kid) items.push(kit("Combinaison de ski enfant"),kit("Gants + bonnet enfant"));
+    const items=[
+      ...perAdult(A=>[A("Masque")]),
+      it("Crème solaire haute protection")
+    ];
     add("Ski / Montagne",items);
   }
 
@@ -632,7 +766,7 @@ function buildList(t,days){
   const removed=new Set(t.removed);
   return generate(t,days).map(sec=>{
     let items=sec.items.filter(i=>!removed.has(i.name))
-      .map(i=>({name:i.name,qty:(i.name in t.qty)?t.qty[i.name]:i.qty,kid:!!i.kid,custom:false}));
+      .map(i=>({name:i.name,qty:(i.name in t.qty)?t.qty[i.name]:i.qty,kid:!!i.kid,owner:i.owner||"",ownerN:i.ownerN||0,ownerTag:i.ownerTag||"",custom:false}));
     t.added.filter(x=>x.cat===sec.title).forEach(x=>{
       items.push({name:x.name,qty:(x.name in t.qty)?t.qty[x.name]:x.qty,kid:false,custom:true});
     });
@@ -786,7 +920,9 @@ function openSettings(){
   document.getElementById("destination").value=T.destination;
   document.getElementById("depart").value=T.depart;
   document.getElementById("retour").value=T.retour;
-  renderChips(); updateKidAge(true); updateDatesSum();
+  document.getElementById("name1").value=T.name1||"";
+  document.getElementById("name2").value=T.name2||"";
+  renderChips(); updateKidAge(true); updatePartner(); updateDatesSum();
   showView("settingsView");
 }
 function updateDatesSum(){
@@ -803,7 +939,7 @@ function makeChips(id,options,isActive,onPick){
     const b=document.createElement("button");
     b.type="button"; b.className="chip"+(isActive(o.value)?" chip--on":"");
     b.textContent=o.label;
-    b.addEventListener("click",()=>{ onPick(o.value); renderChips(); updateKidAge(false); save(); });
+    b.addEventListener("click",()=>{ onPick(o.value); renderChips(); updateKidAge(false); updatePartner(); save(); });
     el.appendChild(b);
   });
 }
@@ -823,7 +959,7 @@ function renderChips(){
     v=>T.transports.includes(v),
     v=>{ T.transports=T.transports.includes(v)?T.transports.filter(x=>x!==v):T.transports.concat(v); });
   makeChips("context",
-    [{label:"✈ Étranger",value:"abroad"},{label:"Avec enfants",value:"kids"}],
+    [{label:"✈ Étranger",value:"abroad"},{label:"Avec enfants",value:"kids"},{label:"2ᵉ adulte",value:"partner"}],
     v=>T[v], v=>{ T[v]=!T[v]; });
   makeChips("gender",
     [{label:"Neutre",value:"neutre"},{label:"Femme",value:"femme"},{label:"Homme",value:"homme"}],
@@ -831,6 +967,9 @@ function renderChips(){
   makeChips("kidGender",
     [{label:"Neutre",value:"neutre"},{label:"Fille",value:"fille"},{label:"Garçon",value:"garcon"}],
     v=>T.kidGender===v, v=>{ T.kidGender=v; });
+  makeChips("partnerGender",
+    [{label:"Neutre",value:"neutre"},{label:"Femme",value:"femme"},{label:"Homme",value:"homme"}],
+    v=>T.partnerGender===v, v=>{ T.partnerGender=v; });
 }
 function updateKidAge(syncValue){
   const wrap=document.getElementById("kidAgeWrap");
@@ -838,6 +977,11 @@ function updateKidAge(syncValue){
   wrap.classList.toggle("hidden", !T.kids);
   if(syncValue) document.getElementById("kidAgeInput").value = (T.kidAge==null?"":T.kidAge);
   document.getElementById("kidAgeBand").textContent = T.kids ? bandLabel(T.kidAge) : "";
+}
+function updatePartner(){
+  const wrap=document.getElementById("partnerWrap");
+  if(!wrap) return;
+  wrap.classList.toggle("hidden", !(T&&T.partner));
 }
 document.getElementById("destination").addEventListener("input",e=>{ if(T){T.destination=e.target.value; save();} });
 document.getElementById("depart").addEventListener("change",e=>{ if(T){T.depart=e.target.value; updateDatesSum(); save();} });
@@ -848,6 +992,8 @@ document.getElementById("kidAgeInput").addEventListener("input",e=>{
   T.kidAge = isNaN(v)?null:Math.max(0,Math.min(17,v));
   updateKidAge(false); save();
 });
+document.getElementById("name1").addEventListener("input",e=>{ if(T){ T.name1=e.target.value; save(); } });
+document.getElementById("name2").addEventListener("input",e=>{ if(T){ T.name2=e.target.value; save(); } });
 document.getElementById("settingsDone").addEventListener("click", ()=>{ renderTripHub(); showView("tripView"); });
 document.getElementById("backFromSettings").addEventListener("click", ()=>{ renderTripHub(); showView("tripView"); });
 
@@ -905,11 +1051,14 @@ function renderCategory(){
   const rows=shown.map(it=>{
     const on=set.has(it.name);
     const qty=it.qty?`<div class="qty"><button data-act="dec" data-name="${esc(it.name)}" data-base="${it.qty}">–</button><span>${it.qty}</span><button data-act="inc" data-name="${esc(it.name)}" data-base="${it.qty}">+</button></div>`:"";
-    const tag=it.kid?`<span class="line__kid" title="Article pour l'enfant"><svg class="kidicon" viewBox="0 0 24 24" role="img" aria-label="bébé"><circle cx="12" cy="10" r="6.2" fill="currentColor"/><path d="M12 2.6c2.2 0 3 1.6 1.9 2.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="9.7" cy="9.6" r="1.05" fill="#fff"/><circle cx="14.3" cy="9.6" r="1.05" fill="#fff"/><path d="M9.8 12.4c1.3 1.1 3.1 1.1 4.4 0" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span>`:"";
+    const kidTag=it.kid?`<span class="line__kid" title="Article pour l'enfant"><svg class="kidicon" viewBox="0 0 24 24" role="img" aria-label="bébé"><circle cx="12" cy="10" r="6.2" fill="currentColor"/><path d="M12 2.6c2.2 0 3 1.6 1.9 2.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="9.7" cy="9.6" r="1.05" fill="#fff"/><circle cx="14.3" cy="9.6" r="1.05" fill="#fff"/><path d="M9.8 12.4c1.3 1.1 3.1 1.1 4.4 0" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span>`:"";
+    const ownTag=it.owner?`<span class="line__own line__own--${it.ownerN||1}" title="Affaires de ${esc(it.owner)}">${esc(it.ownerTag||it.owner[0])}</span>`:"";
+    const tag=kidTag||ownTag;
+    const disp=it.owner?it.name.slice(0,it.name.length-(" ("+it.owner+")").length):it.name;
     return `<li class="line ${on?'line--on':''}">
       <button class="line__check" data-act="check" data-name="${esc(it.name)}">
         <span class="line__box">${on?'✓':''}</span>
-        <span class="line__name">${esc(it.name)}</span></button>
+        <span class="line__name">${esc(disp)}</span></button>
       ${tag}${qty}
       <button class="line__del" data-act="del" data-name="${esc(it.name)}">×</button></li>`;
   }).join("");
