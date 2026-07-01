@@ -417,7 +417,7 @@ const CLIMATES=["Chaud","Tempéré","Froid"];
 const TRIPS=["Plage / Détente","Ville / Culture","Nature / Randonnée","Affaires","Ski / Montagne"];
 const ACTIVITIES=["Baignade","Balade / Visite","Sport / Fitness","Restaurants / Sorties","Réunions pro","Plongée / Snorkeling","Vélo","Soirée habillée"];
 const TRANSPORTS=["Avion","Voiture","Train","Bateau","Bus"];
-const BASE_CATS=["Documents & essentiels","Vêtements","Trousse de toilette","Électronique","Selon la météo"];
+const BASE_CATS=["Documents & essentiels","Bébé & enfant","Vêtements","Trousse de toilette","Électronique","Selon la météo"];
 
 const today=new Date();
 const plus=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
@@ -540,7 +540,7 @@ function generate(t,days){
 
   // ---- Documents & essentiels
   const docs=[
-    ...perAdult(A=>[A(t.abroad?"Passeport":"Pièce d'identité"), A("Portefeuille (cartes, espèces)")]),
+    ...perAdult(A=>[A(t.abroad?"Passeport / pièce d'identité":"Pièce d'identité"), A("Portefeuille (cartes, espèces)")]),
     t.abroad&&it("Copie des documents (papier + cloud)"),
     t.abroad&&it("Assurance voyage"),
     t.abroad&&it("Devises locales"),
@@ -549,20 +549,26 @@ function generate(t,days){
   if(kid){
     docs.push(
       t.abroad&&kit("Passeport / pièce d'identité enfant"),
-      kit("Carnet de santé / vaccins enfant"),
+      kit("Carnet de santé / vaccins enfant")
+    );
+  }
+  add("Documents & essentiels",docs);
+
+  // ---- Bébé & enfant (essentiels à emporter)
+  if(kid){
+    add("Bébé & enfant",[
       (band==="bebe"||band==="petit")&&kit("Doudou"),
       band==="bebe"&&kit("Sac à langer"),
       band==="bebe"&&kit("Poussette / porte-bébé"),
       band==="bebe"&&kit("Biberons + lait / eau"),
       band==="bebe"&&kit("Repas / petits pots", cap(days+1,12))
-    );
+    ]);
   }
-  add("Documents & essentiels",docs);
 
   // ---- Transport
   const trans=[];
   if(tr.has("Avion")) trans.push(it("Billets / carte d'embarquement"),it("Liquides < 100 ml (sac transparent)"),it("Oreiller de voyage"),it("Bouchons / masque de sommeil"));
-  if(tr.has("Voiture")) trans.push(it("Permis de conduire"),it("Chargeur voiture (allume-cigare)"),it("GPS / itinéraire hors-ligne"),it("En-cas pour la route"));
+  if(tr.has("Voiture")) trans.push(it("Permis de conduire"),it("Chargeur voiture (allume-cigare)"),it("GPS / itinéraire hors-ligne"),it("En-cas pour la route"),it("Faire le plein d'essence"));
   if(tr.has("Train")) trans.push(it("Billets de train"),it("En-cas"),it("Livre / divertissement"));
   if(tr.has("Bateau")) trans.push(it("Billets / réservation"),it("Anti-mal de mer"),it("Coupe-vent"));
   if(tr.has("Bus")) trans.push(it("Billets"),it("Oreiller de nuque"),it("En-cas"));
