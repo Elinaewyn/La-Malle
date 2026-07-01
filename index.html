@@ -620,7 +620,8 @@ function generate(t,days){
       // Bébé (0–2 ans) : garde-robe spécifique, détaillée
       cl.push(
         kit("Bodys",cap(days+2,16)),
-        kit("Pyjamas / gigoteuses",cap(Math.ceil(days/2)+1,8)),
+        kit("Pyjamas",cap(Math.ceil(days/2)+1,8)),
+        kit("Gigoteuses",cap(Math.ceil(days/5)+1,3)),
         kit("Ensembles jour",cap(days+2,16)),
         kit("Chaussettes bébé",cap(days+1,12)),
         kit("Gilet / brassière",t.climate==="Froid"?3:2),
@@ -723,6 +724,8 @@ function generate(t,days){
     w.push(...perAdult(A=>[A("Lunettes de soleil"),A("Gourde")]));
     w.push(it("Crème solaire"));
     if(kid) w.push(kit("Crème solaire enfant haute protection"));
+    if(kid && band==="bebe") w.push(kit("Lunettes de soleil bébé"));
+    if(kid && band!=="bebe") w.push(kit("Lunettes de soleil enfant"));
   }
   if(t.rain) w.push(it("Parapluie pliant"));
   add("Selon la météo",w);
