@@ -576,6 +576,7 @@ function generate(t,days){
     A("Chaussettes",cap(days+1,14)),
     A("T-shirts / hauts",cap(Math.ceil(days*0.75)+1,12)),
     A(t.climate==="Chaud"?"Shorts":"Pantalons",cap(Math.ceil(days/3)+1,5)),
+    t.climate==="Chaud"&&A("Pantalon léger / fluide",days>4?2:1),
     A("Pull / veste légère",t.climate==="Froid"?3:days>5?2:1),
     A("Pyjama",days>7?2:1),
     A("Baskets / chaussures de marche",1),
@@ -585,10 +586,11 @@ function generate(t,days){
     g==="femme"&&A("Jupe",1),
     g==="femme"&&A("Soutien-gorge",cap(Math.ceil(days/4)+1,6)),
     g==="femme"&&t.climate==="Froid"&&A("Collants",cap(Math.ceil(days/2),5)),
+    (g==="femme"||g==="neutre")&&A("Bijoux"),
     g==="homme"&&dressy&&A("Cravate / nœud papillon",1),
     // — selon la météo —
     t.climate==="Chaud"&&A("Chapeau / casquette"),
-    t.climate==="Chaud"&&A("Sandales",1),
+    t.climate==="Chaud"&&A("Sandales",cap(Math.ceil(days/5)+1,3)),
     t.climate==="Froid"&&A("Manteau chaud"),
     t.climate==="Froid"&&A("Écharpe, bonnet, gants"),
     t.climate==="Froid"&&A("Sous-vêtements thermiques",cap(days,4)),
@@ -747,7 +749,7 @@ function generate(t,days){
     add("Randonnée & nature",items);
   }
   if(a.has("Sport / Fitness")) add("Sport / Fitness",perAdult(A=>[A("Bouteille d'eau")]));
-  if(a.has("Soirée habillée")) add("Sorties & restaurants",perAdult(A=>[A("Accessoires / bijoux")]));
+  if(a.has("Soirée habillée")) add("Sorties & restaurants",perAdult(A=>[A("Accessoires")]));
   if(a.has("Réunions pro")) add("Réunions pro",[it("Cartes de visite"),it("Bloc-notes + stylo")]);
   if(a.has("Plongée / Snorkeling")) add("Plongée / Snorkeling",perAdult(A=>[A("Masque + tuba")]));
   if(a.has("Vélo")) add("Vélo",perAdult(A=>[A("Casque"),A("Gants de vélo")]));
