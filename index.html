@@ -544,6 +544,7 @@ function generate(t,days){
     t.abroad&&it("Copie des documents (papier + cloud)"),
     t.abroad&&it("Assurance voyage"),
     t.abroad&&it("Devises locales"),
+    it("Stylo"),
     it("Clés (maison, voiture)"),
   ];
   if(kid){
@@ -559,8 +560,13 @@ function generate(t,days){
     add("Bébé & enfant",[
       (band==="bebe"||band==="petit")&&kit("Doudou"),
       band==="bebe"&&kit("Sac à langer"),
-      band==="bebe"&&kit("Poussette / porte-bébé"),
-      band==="bebe"&&kit("Biberons + lait / eau"),
+      band==="bebe"&&kit("Matelas à langer"),
+      band==="bebe"&&kit("Poussette"),
+      band==="bebe"&&kit("Porte-bébé"),
+      band==="bebe"&&kit("Biberons"),
+      band==="bebe"&&kit("Eau"),
+      band==="bebe"&&kit("Lait en poudre"),
+      band==="bebe"&&kit("Goupillon (nettoyage biberons)"),
       band==="bebe"&&kit("Repas / petits pots", cap(days+1,12))
     ]);
   }
@@ -659,7 +665,7 @@ function generate(t,days){
     if(t.climate==="Froid") cl.push(kit("Bonnet + gants enfant"));
     if(t.rain) cl.push(kit("Imperméable enfant"));
     // vêtements enfant liés aux activités
-    if(a.has("Baignade")||tt.has("Plage / Détente")) cl.push(band==="bebe"?kit("Couches de bain",cap(days+2,14)):kit("Maillot anti-UV enfant",days>3?2:1));
+    if((a.has("Baignade")||tt.has("Plage / Détente")) && band!=="bebe") cl.push(kit("Maillot anti-UV enfant",days>3?2:1));
     if(tt.has("Ski / Montagne")) cl.push(kit("Combinaison de ski enfant"),kit("Gants + bonnet enfant"));
     // chaussures enfant plus précises (petit / enfant / ado ; pas le bébé)
     if(band!=="bebe"){
@@ -705,7 +711,12 @@ function generate(t,days){
       band==="bebe"&&kit("Couches",cap(days*5,80)),
       band==="bebe"&&kit("Lingettes"),
       band==="bebe"&&kit("Liniment / crème change"),
+      band==="bebe"&&kit("Crème hydratante"),
       band==="bebe"&&kit("Sérum physiologique"),
+      band==="bebe"&&kit("Brosse à cheveux"),
+      band==="bebe"&&kit("Serviette de bain"),
+      band==="bebe"&&kit("Désinfectant pour les mains"),
+      band==="bebe"&&(a.has("Baignade")||tt.has("Plage / Détente"))&&kit("Couches de bain",cap(days+2,14)),
       kit("Brosse à dents enfant"),
       kit("Gel lavant / shampoing enfant"),
       band==="ado"&&kit("Déodorant ado"),
