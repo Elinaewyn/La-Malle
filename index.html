@@ -563,11 +563,13 @@ function generate(t,days){
       band==="bebe"&&kit("Matelas à langer"),
       band==="bebe"&&kit("Poussette"),
       band==="bebe"&&kit("Porte-bébé"),
-      band==="bebe"&&kit("Biberons"),
-      band==="bebe"&&kit("Eau"),
+      band==="bebe"&&kit("Biberons",3),
+      band==="bebe"&&kit("Eau (bouteille 1 L)",Math.ceil(days*1.5)),
       band==="bebe"&&kit("Lait en poudre"),
       band==="bebe"&&kit("Goupillon (nettoyage biberons)"),
-      band==="bebe"&&kit("Repas / petits pots", cap(days+1,12))
+      band==="bebe"&&kit("Cuillères bébé",3),
+      band==="bebe"&&kit("Petits pots (midi + soir)",cap(days*2,30)),
+      band==="bebe"&&kit("Compotes (goûter)",cap(days+1,12))
     ]);
   }
 
