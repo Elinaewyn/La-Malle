@@ -573,11 +573,15 @@ function generate(t,days){
 
   // ---- Transport
   const trans=[];
-  if(tr.has("Avion")) trans.push(it("Billets / carte d'embarquement"),it("Liquides < 100 ml (sac transparent)"),it("Oreiller de voyage"),it("Bouchons / masque de sommeil"));
-  if(tr.has("Voiture")) trans.push(it("Permis de conduire"),it("Chargeur voiture (allume-cigare)"),it("GPS / itinéraire hors-ligne"),it("En-cas pour la route"),it("Faire le plein d'essence"));
-  if(tr.has("Train")) trans.push(it("Billets de train"),it("En-cas"),it("Livre / divertissement"));
-  if(tr.has("Bateau")) trans.push(it("Billets / réservation"),it("Anti-mal de mer"),it("Coupe-vent"));
-  if(tr.has("Bus")) trans.push(it("Billets"),it("Oreiller de nuque"),it("En-cas"));
+  if(tr.has("Avion")) trans.push(it("Billets / carte d'embarquement"),it("Liquides < 100 ml (sac transparent)"),it("Bouteille d'eau vide (à remplir après sécurité)"),it("Oreiller de voyage"),it("Bouchons / masque de sommeil"));
+  if(tr.has("Voiture")){
+    trans.push(it("Permis de conduire"),it("Chargeur voiture (allume-cigare)"),it("GPS / itinéraire hors-ligne"),it("En-cas pour la route"),it("Boisson pour le trajet"),it("Faire le plein d'essence"),it("Liquide lave-glace"));
+    if(kid && (band==="bebe"||band==="petit")) trans.push(kit("Siège auto"),kit("Store de fenêtre (pare-soleil)"));
+    if(kid && band==="enfant") trans.push(kit("Réhausseur"));
+  }
+  if(tr.has("Train")) trans.push(it("Billets de train"),it("En-cas"),it("Boisson pour le trajet"),it("Livre / divertissement"));
+  if(tr.has("Bateau")) trans.push(it("Billets / réservation"),it("Anti-mal de mer"),it("Boisson pour le trajet"),it("Coupe-vent"));
+  if(tr.has("Bus")) trans.push(it("Billets"),it("Oreiller de nuque"),it("En-cas"),it("Boisson pour le trajet"));
   const _seen=new Set();
   add("Transport", trans.filter(x=>x && !_seen.has(x.name) && _seen.add(x.name)));
 
