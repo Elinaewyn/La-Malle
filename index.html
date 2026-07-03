@@ -417,7 +417,7 @@ const CLIMATES=["Chaud","Tempéré","Froid"];
 const TRIPS=["Plage / Détente","Ville / Culture","Nature / Randonnée","Affaires","Ski / Montagne"];
 const ACTIVITIES=["Baignade","Balade / Visite","Sport / Fitness","Restaurants / Sorties","Réunions pro","Plongée / Snorkeling","Vélo","Soirée habillée"];
 const TRANSPORTS=["Avion","Voiture","Train","Bateau","Bus"];
-const BASE_CATS=["Documents & essentiels","Bébé & enfant","Vêtements","Trousse de toilette","Électronique","Selon la météo"];
+const BASE_CATS=["Documents & essentiels","Bébé & enfant","Vêtements","Trousse de toilette","Électronique","Loisirs & détente","Selon la météo"];
 
 const today=new Date();
 const plus=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
@@ -746,6 +746,19 @@ function generate(t,days){
   }
   if(t.rain) w.push(it("Parapluie pliant"));
   add("Selon la météo",w);
+
+  // ---- Loisirs & détente (contexte Plage / Détente ou Ville / Culture)
+  if(tt.has("Plage / Détente")||tt.has("Ville / Culture")){
+    const loisirs=[
+      ...perAdult(A=>[A("Livre / liseuse"),A("Magazine"),A("Tablette")]),
+      it("Jeu de cartes / de société"),
+    ];
+    if(kid){
+      if(band==="bebe") loisirs.push(kit("Jouets bébé"),kit("Livres bébé (tissu / cartonnés)"),kit("Peluches"));
+      else loisirs.push(kit("Livres / BD enfant"),kit("Jeux / coloriage"),(band==="petit"||band==="enfant")&&kit("Petits jouets"));
+    }
+    add("Loisirs & détente",loisirs);
+  }
 
   // ---- Une catégorie par activité / type de voyage (équipement ; les vêtements sont centralisés)
   if(a.has("Baignade")||tt.has("Plage / Détente")){
