@@ -545,6 +545,9 @@ function generate(t,days){
     t.abroad&&it("Assurance voyage"),
     t.abroad&&it("Devises locales"),
     it("Stylo"),
+    it("Sac à main"),
+    it("Sac à linge"),
+    it("Sac plastique (toujours utile)"),
     it("Clés (maison, voiture)"),
   ];
   if(kid){
@@ -594,6 +597,7 @@ function generate(t,days){
   if(tr.has("Train")) trans.push(it("Billets de train"),it("En-cas"),it("Boisson pour le trajet"),it("Livre / divertissement"));
   if(tr.has("Bateau")) trans.push(it("Billets / réservation"),it("Anti-mal de mer"),it("Boisson pour le trajet"),it("Coupe-vent"));
   if(tr.has("Bus")) trans.push(it("Billets"),it("Oreiller de nuque"),it("En-cas"),it("Boisson pour le trajet"));
+  if(tr.size) trans.push(it("Sac isotherme"));
   const _seen=new Set();
   add("Transport", trans.filter(x=>x && !_seen.has(x.name) && _seen.add(x.name)));
 
@@ -608,6 +612,7 @@ function generate(t,days){
     A("Pull / veste légère",t.climate==="Froid"?3:days>5?2:1),
     A("Pyjama",days>7?2:1),
     A("Baskets / chaussures de marche",1),
+    A("Montre"),
     formal&&A("Tenue formelle (costume / tailleur)",cap(Math.ceil(days/2),4)),
     (formal||a.has("Restaurants / Sorties")||a.has("Soirée habillée"))&&A("Chaussures de ville",1),
     g==="femme"&&A("Robe",days>4?2:1),
