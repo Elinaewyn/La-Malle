@@ -417,7 +417,7 @@ const CLIMATES=["Chaud","Tempéré","Froid"];
 const TRIPS=["Plage / Détente","Ville / Culture","Nature / Randonnée","Affaires","Ski / Montagne"];
 const ACTIVITIES=["Baignade","Balade / Visite","Sport / Fitness","Restaurants / Sorties","Réunions pro","Plongée / Snorkeling","Vélo","Soirée habillée"];
 const TRANSPORTS=["Avion","Voiture","Train","Bateau","Bus"];
-const BASE_CATS=["Documents & essentiels","Bébé & enfant","Vêtements","Trousse de toilette","Électronique","Loisirs & détente","Selon la météo"];
+const BASE_CATS=["Documents & essentiels","Bébé & enfant","Vêtements","Trousse de toilette","Pharmacie","Électronique","Loisirs & détente","Selon la météo"];
 
 const today=new Date();
 const plus=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
@@ -702,37 +702,41 @@ function generate(t,days){
   add("Vêtements",cl);
 
   // ---- Trousse de toilette
-  const sfx1 = label1 ? " ("+label1+")" : "";
-  const own1 = o => label1 ? Object.assign(o,{owner:label1,ownerN:1,ownerTag:tag1}) : o;
-  const wash=[
-    own1(it("Brosse à dents + dentifrice"+sfx1)),
-    own1(it("Déodorant"+sfx1)),
-    own1(it("Gel douche"+sfx1)),
-    own1(it("Shampoing"+sfx1)),
-    t.gender==="femme"&&own1(it("Après-shampoing"+sfx1)),
-    own1(it("Brosse / peigne"+sfx1)),
-    own1(it("Médicaments personnels"+sfx1)),
+  const washPersonal = (g, A) => [
+    A("Brosse à dents + dentifrice"),
+    A("Déodorant"),
+    A("Gel douche"),
+    A("Shampoing"),
+    g==="femme"&&A("Après-shampoing"),
+    A("Shampooing sec"),
+    A("Produits pour les cheveux"),
+    A("Brosse / peigne"),
+    g==="femme"&&A("Élastiques pour les cheveux"),
+    g==="femme"&&A("Barrettes"),
+    A("Gant de toilette"),
+    A("Baume à lèvres"),
+    A("Crème hydratante"),
+    A("Parfum"),
+    g==="femme"&&A("Maquillage"),
+    g==="femme"&&A("Pinceaux de maquillage"),
+    g==="femme"&&A("Démaquillant"),
+    g==="femme"&&A("Cotons démaquillants"),
+  ].filter(Boolean);
+  const wash = washPersonal(t.gender, A1);
+  if(t.partner) wash.push(...washPersonal(t.partnerGender, A2));
+  wash.push(
     it("Mouchoirs"),
-  ];
-  if(t.partner){
-    const sfx2=" ("+label2+")";
-    const own2 = o => Object.assign(o,{owner:label2,ownerN:2,ownerTag:tag2});
-    wash.push(
-      own2(it("Brosse à dents + dentifrice"+sfx2)),
-      own2(it("Déodorant"+sfx2)),
-      own2(it("Gel douche"+sfx2)),
-      own2(it("Shampoing"+sfx2)),
-      t.partnerGender==="femme"&&own2(it("Après-shampoing"+sfx2)),
-      own2(it("Brosse / peigne"+sfx2)),
-      own2(it("Médicaments personnels"+sfx2))
-    );
-  }
+    it("Cotons-tiges"),
+    it("Pince à épiler"),
+    it("Sèche-cheveux"),
+    (t.gender==="femme"||t.partnerGender==="femme")&&it("Lisseur")
+  );
   if(kid){
     wash.push(
       band==="bebe"&&kit("Couches",cap(days*5,80)),
       band==="bebe"&&kit("Lingettes"),
       band==="bebe"&&kit("Liniment / crème change"),
-      band==="bebe"&&kit("Crème hydratante"),
+      band==="bebe"&&kit("Crème hydratante bébé"),
       band==="bebe"&&kit("Sérum physiologique"),
       band==="bebe"&&kit("Brosse à cheveux"),
       band==="bebe"&&kit("Serviette de bain"),
@@ -745,6 +749,20 @@ function generate(t,days){
     );
   }
   add("Trousse de toilette",wash);
+
+  // ---- Pharmacie (petite trousse à pharmacie, partagée)
+  const pharma=[
+    it("Médicaments habituels"),
+    it("Pansements"),
+    it("Crème anti-démangeaison"),
+    it("Gouttes pour les yeux"),
+    it("Bouchons d'oreille"),
+    it("Contraceptif"),
+    it("Insectifuge"),
+    t.climate==="Chaud"&&it("Brumisateur"),
+  ];
+  if(kid) pharma.push(kit("Insectifuge enfant"));
+  add("Pharmacie",pharma);
 
   // ---- Électronique
   const elec=[
