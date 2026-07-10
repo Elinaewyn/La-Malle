@@ -1,10 +1,19 @@
-/* En Valise — service worker (mise à jour automatique)
+/* La Malle — service worker (mise à jour automatique)
    Stratégie « réseau d'abord » : en ligne, l'app sert toujours la dernière
    version et rafraîchit le cache au passage ; hors-ligne, elle sert la copie
-   en cache. Aucun numéro de version à incrémenter lors des mises à jour :
-   il suffit de remplacer index.html sur l'hébergeur. */
+   en cache.
 
-const CACHE = "en-valise";
+   Mises à jour de CONTENU (index.html) : il suffit de remplacer index.html sur
+   l'hébergeur, rien d'autre à faire. La page est récupérée en contournant le
+   cache HTTP (cache: "reload"), donc les testeurs voient la nouveauté dès le
+   prochain lancement en ligne.
+
+   VERSION : à n'incrémenter QUE si vous voulez forcer une purge totale du cache
+   (dépannage). Inutile pour les simples mises à jour de contenu. */
+
+const VERSION = "1";
+const CACHE = "la-malle-v" + VERSION;
+
 const ASSETS = [
   "./",
   "./index.html",
@@ -42,10 +51,11 @@ self.addEventListener("fetch", (e) => {
   // Les ressources d'autres domaines (ex. Google Fonts) passent au réseau.
   if (url.origin !== self.location.origin) return;
 
-  // Page / navigation : réseau d'abord, cache en secours hors-ligne.
+  // Page / navigation : réseau d'abord (en contournant le cache HTTP pour avoir
+  // la version la plus fraîche), cache en secours hors-ligne.
   if (req.mode === "navigate" || req.destination === "document") {
     e.respondWith(
-      fetch(req).then((res) => {
+      fetch(req, { cache: "reload" }).then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
         return res;
